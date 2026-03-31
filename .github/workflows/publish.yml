@@ -25,7 +25,7 @@ jobs:
         run: npm test
 
   publish:
-  needs: [test]
+    needs: [test]
     runs-on: ubuntu-latest
     environment: npm
     steps:
