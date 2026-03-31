@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,6 +32,17 @@ function getWorkspaceLocalNpmCliPath(repoRoot: string): string {
 	return path.join(repoRoot, "node_modules", "npm", "bin", "npm-cli.js");
 }
 
+function getNpmLauncher(repoRoot: string): { command: string; argsPrefix: string[] } {
+	const localNpmCli = getWorkspaceLocalNpmCliPath(repoRoot);
+	if (fs.existsSync(localNpmCli)) {
+		// node <repoRoot>/node_modules/npm/bin/npm-cli.js ...
+		return { command: "node", argsPrefix: [localNpmCli] };
+	}
+
+	// Fallback: system npm. This is common in WSL where npm is installed globally via apt.
+	return { command: "npm", argsPrefix: [] };
+}
+
 function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 	const root = getRepoRoot();
 	return [
@@ -60,30 +72,30 @@ function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 
 function getDefaultManagedProcessesDev(): ManagedProcInfo[] {
 	const root = getRepoRoot();
-	const npmCli = getWorkspaceLocalNpmCliPath(root);
-	const npmArgs = [npmCli, "run", "dev"] as const;
+	const npm = getNpmLauncher(root);
+	const npmArgs = [...npm.argsPrefix, "run", "dev"];
 
 	return [
 		{
 			name: "sentinel",
 			label: "sentinel",
 			cwd: path.join(root, "sentinel"),
-			command: "node",
-			args: [...npmArgs],
+			command: npm.command,
+			args: npmArgs,
 		},
 		{
 			name: "watchtower",
 			label: "watchtower",
 			cwd: path.join(root, "watchtower"),
-			command: "node",
-			args: [...npmArgs],
+			command: npm.command,
+			args: npmArgs,
 		},
 		{
 			name: "overseer",
 			label: "overseer",
 			cwd: path.join(root, "overseer"),
-			command: "node",
-			args: [...npmArgs],
+			command: npm.command,
+			args: npmArgs,
 		},
 	];
 }
