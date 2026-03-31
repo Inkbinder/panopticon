@@ -1,4 +1,5 @@
 import http from "node:http";
+import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,10 @@ const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, "..", "dist");
 const port = Number(process.env.PORT ?? 5173);
 const host = process.env.HOST ?? "0.0.0.0";
+
+// Reverse-proxy target for API requests (sentinel).
+// In prod, the Vite build calls /api/* on the same origin; this server must forward that.
+const apiBaseUrl = new URL(process.env.API_BASE_URL ?? "http://localhost:8787");
 
 const mime = {
 	".html": "text/html; charset=utf-8",
@@ -34,10 +39,51 @@ function safeResolve(urlPath) {
 	return p;
 }
 
+function proxyApi(req, res) {
+	const isHttps = apiBaseUrl.protocol === "https:";
+	const client = isHttps ? https : http;
+
+	const upstreamHeaders = {
+		...req.headers,
+		host: apiBaseUrl.host,
+	};
+
+	const upstreamReq = client.request(
+		{
+			protocol: apiBaseUrl.protocol,
+			hostname: apiBaseUrl.hostname,
+			port: apiBaseUrl.port || (isHttps ? 443 : 80),
+			method: req.method,
+			path: req.url,
+			headers: upstreamHeaders,
+		},
+		(upstreamRes) => {
+			res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
+			upstreamRes.pipe(res);
+		},
+	);
+
+	upstreamReq.on("error", () => {
+		if (!res.headersSent) {
+			res.statusCode = 502;
+			res.setHeader("Content-Type", "application/json; charset=utf-8");
+		}
+		res.end(JSON.stringify({ ok: false, error: "Bad Gateway" }));
+	});
+
+	req.pipe(upstreamReq);
+}
+
 const server = http.createServer((req, res) => {
 	if (!req.url) {
 		res.statusCode = 400;
 		res.end("Bad Request");
+		return;
+	}
+
+	// Proxy API routes to sentinel (supports SSE streaming).
+	if (req.url.startsWith("/api")) {
+		proxyApi(req, res);
 		return;
 	}
 
@@ -71,4 +117,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
 	console.log(`watchtower serving ${root} at http://${host}:${port}`);
+	console.log(`watchtower proxying /api -> ${apiBaseUrl.toString()}`);
 });
