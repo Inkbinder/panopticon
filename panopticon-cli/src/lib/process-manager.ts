@@ -1,6 +1,4 @@
-import { spawn } from "node:child_process";
-import fs from "node:fs";
-import os from "node:os";
+import { spawn, type ChildProcess } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,6 +12,25 @@ export type ManagedProcInfo = {
 	args: string[];
 };
 
+function getRepoRoot(): string {
+	// At runtime this file is bundled into panopticon-cli/dist.
+	// dist -> panopticon-cli -> repo root
+	const here = path.dirname(fileURLToPath(import.meta.url));
+	const root = path.resolve(here, "../..");
+	// Sanity check: repo root should contain package workspaces.
+	// If this trips, callers will get a clear error instead of spawning nonsense paths.
+	if (!root.endsWith("panopticon") && !root.includes("panopticon" + path.sep)) {
+		// Non-fatal: still return computed root, but we can help debugging in logs.
+		// (We don't throw because bundled paths can vary in tests.)
+	}
+	return root;
+}
+
+function getWorkspaceLocalNpmCliPath(repoRoot: string): string {
+	// Spec: prefer calling npm via the workspace-local entrypoint to avoid PATH quirks.
+	return path.join(repoRoot, "node_modules", "npm", "bin", "npm-cli.js");
+}
+
 function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 	const root = getRepoRoot();
 	return [
@@ -21,21 +38,21 @@ function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 			name: "sentinel",
 			label: "sentinel",
 			cwd: path.join(root, "sentinel"),
-			command: process.execPath,
+			command: "node",
 			args: [path.join(root, "sentinel", "dist", "index.js")],
 		},
 		{
 			name: "watchtower",
 			label: "watchtower",
 			cwd: path.join(root, "watchtower"),
-			command: process.execPath,
+			command: "node",
 			args: [path.join(root, "watchtower", "dist-server", "server.js")],
 		},
 		{
 			name: "overseer",
 			label: "overseer",
 			cwd: path.join(root, "overseer"),
-			command: process.execPath,
+			command: "node",
 			args: [path.join(root, "overseer", "dist", "index.js")],
 		},
 	];
@@ -43,63 +60,44 @@ function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 
 function getDefaultManagedProcessesDev(): ManagedProcInfo[] {
 	const root = getRepoRoot();
-	// Keep dev mode using each workspace's dev script via npm, since this is for contributors.
-	const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+	const npmCli = getWorkspaceLocalNpmCliPath(root);
+	const npmArgs = [npmCli, "run", "dev"] as const;
+
 	return [
-		{ name: "sentinel", label: "sentinel", cwd: path.join(root, "sentinel"), command: npm, args: ["run", "dev"] },
-		{ name: "watchtower", label: "watchtower", cwd: path.join(root, "watchtower"), command: npm, args: ["run", "dev"] },
-		{ name: "overseer", label: "overseer", cwd: path.join(root, "overseer"), command: npm, args: ["run", "dev"] },
+		{
+			name: "sentinel",
+			label: "sentinel",
+			cwd: path.join(root, "sentinel"),
+			command: "node",
+			args: [...npmArgs],
+		},
+		{
+			name: "watchtower",
+			label: "watchtower",
+			cwd: path.join(root, "watchtower"),
+			command: "node",
+			args: [...npmArgs],
+		},
+		{
+			name: "overseer",
+			label: "overseer",
+			cwd: path.join(root, "overseer"),
+			command: "node",
+			args: [...npmArgs],
+		},
 	];
 }
 
-export type ProcState = {
-	pid: number;
-	startedAt: string;
-};
-
-export type StateFile = {
-	version: 1;
-	processes: Partial<Record<ManagedProcessName, ProcState>>;
-};
-
-function getRepoRoot(): string {
-	// panopticon-cli/src/lib -> package root is ../.., monorepo root is ../../..
-	const here = path.dirname(fileURLToPath(import.meta.url));
-	return path.resolve(here, "../../.. ".trim());
-}
-
-function getStateDir(explicitDir?: string): string {
-	return explicitDir ?? process.env.PANOPTICON_STATE_DIR ?? path.join(os.homedir(), ".panopticon");
-}
-
-function getStatePath(explicitDir?: string): string {
-	return path.join(getStateDir(explicitDir), "panopticon-cli-state.json");
-}
-
-export function readState(stateDir?: string): StateFile {
-	const statePath = getStatePath(stateDir);
-	try {
-		const raw = fs.readFileSync(statePath, "utf8");
-		const parsed = JSON.parse(raw) as StateFile;
-		if (parsed?.version !== 1 || typeof parsed !== "object") throw new Error("invalid state version");
-		return parsed;
-	} catch {
-		return { version: 1, processes: {} };
-	}
-}
-
-export function writeState(state: StateFile, stateDir?: string) {
-	const statePath = getStatePath(stateDir);
-	fs.mkdirSync(path.dirname(statePath), { recursive: true });
-	fs.writeFileSync(statePath, JSON.stringify(state, null, 2), "utf8");
-}
-
-export function getManagedProcesses(): ManagedProcInfo[] {
-	const useDev = Boolean(process.env.PANOPTICON_DEV) || process.env.NODE_ENV === "development";
+export function getManagedProcesses(opts?: { dev?: boolean }): ManagedProcInfo[] {
+	const useDev = Boolean(opts?.dev) || process.env.PANOPTICON_DEV === "1";
 	return useDev ? getDefaultManagedProcessesDev() : getDefaultManagedProcessesProd();
 }
 
-export function isPidRunning(pid: number): boolean {
+function delay(ms: number): Promise<void> {
+	return new Promise((r) => setTimeout(r, ms));
+}
+
+function isPidRunning(pid: number): boolean {
 	try {
 		process.kill(pid, 0);
 		return true;
@@ -108,136 +106,141 @@ export function isPidRunning(pid: number): boolean {
 	}
 }
 
-export async function stopPid(pid: number, label: string, timeoutMs: number): Promise<void> {
+async function killProcessGroup(pid: number, signal: NodeJS.Signals): Promise<void> {
+	// On Unix, detached children become their own process group leader.
+	// Killing -pid targets the entire group.
+	process.kill(-pid, signal);
+}
+
+async function stopProcessTreeUnix(pid: number, label: string, timeoutMs: number): Promise<void> {
 	if (!isPidRunning(pid)) return;
 
 	try {
-		process.kill(pid, "SIGTERM");
+		await killProcessGroup(pid, "SIGTERM");
 	} catch {
 		// ignore
 	}
 
-	const start = Date.now();
-	while (Date.now() - start < timeoutMs) {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
 		if (!isPidRunning(pid)) return;
-		await new Promise((r) => setTimeout(r, 200));
+		await delay(100);
 	}
 
 	try {
-		process.kill(pid, "SIGKILL");
+		await killProcessGroup(pid, "SIGKILL");
 	} catch {
-		console.warn(`${label}: failed to kill PID ${pid}`);
+		console.warn(`${label}: failed to SIGKILL process group ${pid}`);
 	}
 }
 
-export function startOneForeground(proc: ManagedProcInfo) {
+export type SupervisedChild = {
+	info: ManagedProcInfo;
+	child: ChildProcess;
+	pid: number;
+};
+
+function spawnInNewProcessGroup(proc: ManagedProcInfo): SupervisedChild {
+	// Guardrail: child_process.spawn() takes (command, args). If args includes the command again,
+	// the OS will attempt to execute `command` with argv[0]=command and argv[1]=command, which is wrong.
+	if (proc.args[0] === proc.command) {
+		throw new Error(`${proc.label}: internal error: args must not include the command (${proc.command})`);
+	}
+
 	const child = spawn(proc.command, proc.args, {
 		cwd: proc.cwd,
 		stdio: "inherit",
 		env: { ...process.env },
 		shell: false,
-		detached: false,
+		detached: true,
 		windowsHide: false,
 	});
-	return child;
-}
 
-export async function startAll(opts?: { dev?: boolean; stateDir?: string }): Promise<StateFile> {
-	if (opts?.dev) process.env.PANOPTICON_DEV = "1";
-	const stateDir = opts?.stateDir;
-	const state = readState(stateDir);
-	const procs = getManagedProcesses();
-
-	for (const p of procs) {
-		const existing = state.processes[p.name];
-		if (existing?.pid && isPidRunning(existing.pid)) continue;
-
-		// startAll is used by tests; keep it pid-based, but do not detach.
-		const child = startOneForeground(p);
-		if (!child.pid) throw new Error(`${p.label}: failed to spawn`);
-		state.processes[p.name] = { pid: child.pid, startedAt: new Date().toISOString() };
-	}
-
-	writeState(state, stateDir);
-	return state;
-}
-
-export async function superviseAll(opts?: { dev?: boolean; stateDir?: string; timeoutMs?: number }): Promise<void> {
-	if (opts?.dev) process.env.PANOPTICON_DEV = "1";
-	const timeoutMs = opts?.timeoutMs ?? 5000;
-	const stateDir = opts?.stateDir;
-	const state = readState(stateDir);
-	const procs = getManagedProcesses();
-
-	const children: { name: ManagedProcessName; label: string; pid: number; child: ReturnType<typeof startOneForeground> }[] = [];
-
-	for (const p of procs) {
-		const existing = state.processes[p.name];
-		if (existing?.pid && isPidRunning(existing.pid)) {
-			console.log(`${p.label} already running (PID ${existing.pid})`);
-			continue;
-		}
-
-		const child = startOneForeground(p);
-		child.once("error", (err) => {
-			console.error(`${p.label}: failed to start`, err);
+	child.on("error", (err) => {
+		console.error(`${proc.label}: spawn error`, {
+			command: proc.command,
+			args: proc.args,
+			cwd: proc.cwd,
+			err: String(err),
 		});
-		if (!child.pid) throw new Error(`${p.label}: failed to spawn`);
-		children.push({ name: p.name, label: p.label, pid: child.pid, child });
-		state.processes[p.name] = { pid: child.pid, startedAt: new Date().toISOString() };
-		console.log(`${p.label} started (PID ${child.pid})`);
-	}
-
-	writeState(state, stateDir);
-
-	const shutdown = async () => {
-		for (const c of children.slice().reverse()) {
-			await stopPid(c.pid, c.label, timeoutMs);
-		}
-		// clear state
-		const cleared = readState(stateDir);
-		for (const c of children) delete cleared.processes[c.name];
-		writeState(cleared, stateDir);
-	};
-
-	let shuttingDown = false;
-	const handleSignal = (sig: NodeJS.Signals) => {
-		if (shuttingDown) return;
-		shuttingDown = true;
-		console.log(`\nReceived ${sig}. Stopping...`);
-		void shutdown().finally(() => process.exit(0));
-	};
-
-	process.on("SIGINT", handleSignal);
-	process.on("SIGTERM", handleSignal);
-
-	await new Promise<void>((resolve) => {
-		let exited = 0;
-		for (const c of children) {
-			c.child.once("exit", (code, signal) => {
-				console.log(`${c.label} exited (${code ?? "?"}${signal ? `, ${signal}` : ""})`);
-				exited++;
-				if (exited >= children.length) resolve();
-			});
-		}
 	});
 
-	await shutdown();
-}
-
-export async function stopAll(opts?: { timeoutMs?: number; stateDir?: string }): Promise<StateFile> {
-	const timeoutMs = opts?.timeoutMs ?? 5000;
-	const stateDir = opts?.stateDir;
-	const state = readState(stateDir);
-	const procs = getManagedProcesses();
-
-	for (const p of [...procs].reverse()) {
-		const existing = state.processes[p.name];
-		if (!existing?.pid) continue;
-		await stopPid(existing.pid, p.label, timeoutMs);
-		delete state.processes[p.name];
+	if (!child.pid) {
+		throw new Error(
+			`${proc.label}: failed to spawn (command=${proc.command} args=${JSON.stringify(proc.args)} cwd=${proc.cwd})`,
+		);
 	}
 
-	writeState(state, stateDir);
-	return state;
+	return { info: proc, child, pid: child.pid };
 }
+
+export async function superviseAll(opts?: { dev?: boolean; timeoutMs?: number }): Promise<void> {
+	if (process.platform === "win32") {
+		throw new Error("Windows is not supported. Run this CLI in WSL2 or a Linux dev container.");
+	}
+
+	const timeoutMs = opts?.timeoutMs ?? 5000;
+	const children: SupervisedChild[] = [];
+
+	const procs = getManagedProcesses({ dev: opts?.dev });
+	for (const p of procs) {
+		const c = spawnInNewProcessGroup(p);
+		children.push(c);
+		console.log(`${p.label} started (PID ${c.pid})`);
+	}
+
+	let unexpectedExit: { who: string; code: number | null; signal: NodeJS.Signals | null } | null = null;
+	let shuttingDown = false;
+
+	const shutdown = async (reason: string, exitCode: number) => {
+		if (shuttingDown) return;
+		shuttingDown = true;
+
+		if (reason) console.log(`\n${reason}`);
+
+		// Stop in reverse order (overseer, watchtower, sentinel) to reduce churn.
+		for (const c of [...children].reverse()) {
+			await stopProcessTreeUnix(c.pid, c.info.label, timeoutMs);
+		}
+
+		process.exitCode = exitCode;
+	};
+
+	const onSignal = (sig: NodeJS.Signals) => {
+		void shutdown(`Received ${sig}. Stopping...`, 0).finally(() => {
+			process.exit(process.exitCode ?? 0);
+		});
+	};
+
+	process.on("SIGINT", onSignal);
+	process.on("SIGTERM", onSignal);
+
+	// Fail-fast: if any managed process exits unexpectedly, stop the others and exit non-zero.
+	for (const c of children) {
+		c.child.once("exit", (code, signal) => {
+			if (shuttingDown) return;
+			unexpectedExit = { who: c.info.label, code, signal };
+			void shutdown(
+				`${c.info.label} exited unexpectedly (${code ?? "?"}${signal ? `, ${signal}` : ""}). Shutting down...`,
+				1,
+			).finally(() => process.exit(1));
+		});
+
+		c.child.once("error", (err) => {
+			if (shuttingDown) return;
+			unexpectedExit = { who: c.info.label, code: 1, signal: null };
+			void shutdown(`${c.info.label} error: ${String(err)}. Shutting down...`, 1).finally(() => process.exit(1));
+		});
+	}
+
+	// Park the supervisor.
+	await new Promise<void>((resolve) => {
+		const interval = setInterval(() => {
+			if (shuttingDown || unexpectedExit) {
+				clearInterval(interval);
+				resolve();
+			}
+		}, 1000);
+	});
+}
+

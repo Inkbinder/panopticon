@@ -3,7 +3,7 @@ Opinionated agentic engineering with harness-based approach.
 
 ## Platform support
 
-This repository currently supports **Linux/macOS** environments for running the local supervisor and managed processes.
+This repository currently supports **Linux/macOS/WSL2** environments for running the local supervisor and managed processes.
 
 If you're on Windows, use one of:
 

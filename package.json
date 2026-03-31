@@ -29,7 +29,6 @@
   "workspaces": [
     "panopticon",
     "panopticon-cli",
-    "panopticon-daemon",
     "overseer",
     "sentinel",
     "watchtower"
@@ -37,16 +36,15 @@
   "scripts": {
     "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
     "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
-  "build:packages": "npm -w overseer run build && npm -w panopticon-daemon run build && npm -w panopticon-cli run build",
+  "build:packages": "npm -w overseer run build && npm -w panopticon-cli run build",
   "build:web": "npm -w sentinel run build && npm -w watchtower run build",
   "build": "npm run build:packages && npm run build:web",
-  "test:packages": "npm -w overseer test && npm -w panopticon-daemon test && npm -w panopticon-cli test",
+  "test:packages": "npm -w overseer test && npm -w panopticon-cli test",
   "test:web": "npm -w sentinel test && npm -w watchtower test",
   "test": "npm run test:packages && npm run test:web",
   "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
   },
   "devDependencies": {
-  "@esbuild/win32-x64": "^0.25.10",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "tsup": "^8.5.0"

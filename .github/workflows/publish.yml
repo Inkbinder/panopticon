@@ -25,29 +25,8 @@ jobs:
       - name: Test
         run: npm test
 
-  # Build the Windows prebuilt helper and upload it as an artifact
-  win32-prebuild:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-      - name: Install
-        run: npm ci
-      - name: Build daemon (includes native build attempt)
-        run: npm run build -w panopticon-daemon
-      - name: Build native helper (strict)
-        run: npm run build:native -w panopticon-daemon
-      - name: Upload win32 prebuilt
-        uses: actions/upload-artifact@v6
-        with:
-          name: win32-prebuilt
-          path: panopticon-daemon/native/bin/**/spawn_job_win32.exe
-
   publish:
-    needs: [test, win32-prebuild]
+  needs: [test]
     runs-on: ubuntu-latest
     environment: npm
     steps:
@@ -60,23 +39,12 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Download win32 prebuilt
-        uses: actions/download-artifact@v6
-        with:
-          name: win32-prebuilt
-          path: panopticon-daemon/native/bin
-
       - name: Build publishable packages
         run: |
           npm run build -w sentinel
           npm run build -w overseer
           npm run build -w watchtower
-          npm run build -w panopticon-daemon
-          npm run bundle:runtime -w panopticon-daemon
           npm run build -w panopticon-cli
-
-      - name: Publish panopticon-daemon
-        run: npm publish -w panopticon-daemon
 
       - name: Publish panopticon-cli
         run: npm publish -w panopticon-cli
