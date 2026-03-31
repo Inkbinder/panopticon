@@ -1,5 +1,6 @@
 {
-  "name": "@inkbinker/panopticon",
+  "name": "@inkbinker/panopticon-wrapper",
+  "private": true,
   "version": "1.0.0",
   "description": "Opinionated Agentic Engineering",
   "keywords": [

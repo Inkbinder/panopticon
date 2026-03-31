@@ -1,0 +1,25 @@
+{
+  "name": "@inkbinder/overseer",
+  "description": "The overseer of the panopticon. Responsible for managing the execution of tasks and agents, and providing an interface for monitoring and controlling the system.",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^4.1.2",
+    "supertest": "^7.1.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.2"
+  }
+}
