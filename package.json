@@ -1,0 +1,42 @@
+{
+  "name": "@inkbinker/panopticon",
+  "version": "1.0.0",
+  "description": "Opinionated Agentic Engineering",
+  "keywords": [
+    "agentic",
+    "engineering",
+    "development",
+    "workflow",
+    "delivery",
+    "oversight",
+    "ai",
+    "artificial",
+    "intelligence",
+    "llm"
+  ],
+  "homepage": "https://github.com/Inkbinder/panopticon#readme",
+  "bugs": {
+    "url": "https://github.com/Inkbinder/panopticon/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Inkbinder/panopticon.git"
+  },
+  "license": "MIT",
+  "author": "Gareth Walkersmith",
+  "type": "module",
+  "workspaces": [
+  "sentinel",
+    "watchtower"
+  ],
+  "scripts": {
+  "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
+  "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
+  "build": "npm -w sentinel run build && npm -w watchtower run build",
+  "test": "npm -w sentinel test && npm -w watchtower test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3"
+  }
+}

@@ -59,6 +59,11 @@ web_modules/
 # Optional REPL history
 .node_repl_history
 
+# OS junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+
 # Output of 'npm pack'
 *.tgz
 
