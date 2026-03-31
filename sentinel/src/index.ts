@@ -5,6 +5,7 @@ import { InMemoryStore } from './state/store';
 import { createEventsRoute } from './routes/events';
 import { createQuestionsRoutes } from './routes/questions';
 import { createCellsRoutes } from './routes/cells';
+import { createLogsRoutes } from './routes/logs';
 import { startDemoSimulator } from './demo/simulator';
 
 export function createApp(deps?: { bus?: InMemoryEventBus; store?: InMemoryStore }) {
@@ -17,6 +18,9 @@ export function createApp(deps?: { bus?: InMemoryEventBus; store?: InMemoryStore
 
   app.get('/api/health', (_req, res) => res.status(200).json({ ok: true }));
   app.get('/api/events', createEventsRoute(bus, store));
+
+  const logs = createLogsRoutes(store);
+  app.post('/api/logs', logs.create);
 
   const q = createQuestionsRoutes(store);
   app.post('/api/questions', q.create);

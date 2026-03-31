@@ -53,10 +53,11 @@ export class InMemoryStore {
     this.bus.publish({ type: 'cell.remove', data: { cellId } });
   }
 
-  appendLog(scope: 'overseer' | 'cell', agent: AgentRole, message: string, cellId?: string) {
+  appendLog(scope: 'overseer' | 'cell', agent: AgentRole, message: string, cellId?: string, level?: string) {
     const e: LogEvent = {
       id: crypto.randomUUID(),
       ts: Date.now(),
+      level,
       scope,
       cellId,
       agent,

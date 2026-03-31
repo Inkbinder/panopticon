@@ -53,6 +53,39 @@ describe('sentinel routes', () => {
     expect(stop.status).toBe(204);
   });
 
+  it('POST /api/logs validates body and publishes log event', async () => {
+    const { app, bus } = createApp();
+
+    const published: any[] = [];
+    bus.subscribe({
+      id: 't',
+      filter: () => true,
+      send: (m: any) => published.push(m),
+      close: () => {},
+    });
+
+    const bad = await request(app).post('/api/logs').send({});
+    expect(bad.status).toBe(400);
+
+    const badScope = await request(app).post('/api/logs').send({ scope: 'nope', agent: 'overseer', message: 'x' });
+    expect(badScope.status).toBe(400);
+
+    const missingCellId = await request(app)
+      .post('/api/logs')
+      .send({ scope: 'cell', agent: 'guard', message: 'hi' });
+    expect(missingCellId.status).toBe(400);
+
+    const ok = await request(app)
+      .post('/api/logs')
+      .send({ scope: 'overseer', agent: 'overseer', message: 'hello', level: 'info' });
+
+    expect(ok.status).toBe(201);
+    expect(ok.body.message).toBe('hello');
+    expect(ok.body.scope).toBe('overseer');
+
+    expect(published.some((m) => m.type === 'log' && m.data.message === 'hello')).toBe(true);
+  });
+
   it('events filter includes only matching cell-scoped messages', () => {
     const filter = makeFilter({ query: { scope: 'cell', cellId: 'alpha' } } as any);
 

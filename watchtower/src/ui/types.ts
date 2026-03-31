@@ -19,6 +19,7 @@ export type CellSummary = {
 export type LogEvent = {
   id: string;
   ts: number;
+  level?: string;
   scope: 'overseer' | 'cell';
   cellId?: string;
   agent: AgentRole;
