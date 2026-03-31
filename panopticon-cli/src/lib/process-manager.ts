@@ -74,7 +74,9 @@ function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 function getDefaultManagedProcessesDev(): ManagedProcInfo[] {
 	const root = getRepoRoot();
 	const npm = getNpmLauncher(root);
-	const runCwd = process.cwd();
+	// Dev mode uses `npm -w <workspace>` which requires running from the repo root
+	// (where the workspace root package.json lives).
+	const runCwd = root;
 	const npmArgs = (workspace: string) => [...npm.argsPrefix, "-w", workspace, "run", "dev"];
 
 	return [

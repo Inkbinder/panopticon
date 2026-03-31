@@ -26,13 +26,24 @@ export type PanopticonConfig = {
 
 let cached: { cwd: string; config: PanopticonConfig } | null = null;
 
+function findPanopticonYaml(startDir: string): string | null {
+	let dir = startDir;
+	while (true) {
+		const candidate = path.join(dir, 'panopticon.yaml');
+		if (fs.existsSync(candidate)) return candidate;
+		const parent = path.dirname(dir);
+		if (parent === dir) return null;
+		dir = parent;
+	}
+}
+
 export function readPanopticonConfig(opts?: { cwd?: string; required?: boolean }): PanopticonConfig {
 	const cwd = opts?.cwd ?? process.cwd();
 	if (cached?.cwd === cwd) return cached.config;
 
-	const filePath = path.join(cwd, 'panopticon.yaml');
-	if (!fs.existsSync(filePath)) {
-		if (opts?.required) throw new Error(`Missing panopticon.yaml in ${cwd}`);
+	const filePath = findPanopticonYaml(cwd);
+	if (!filePath) {
+		if (opts?.required) throw new Error(`Missing panopticon.yaml in ${cwd} (or any parent directory)`);
 		const empty: PanopticonConfig = {};
 		cached = { cwd, config: empty };
 		return empty;

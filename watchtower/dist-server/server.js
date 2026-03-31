@@ -12,8 +12,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function readPanopticonConfig() {
-	const filePath = path.join(process.cwd(), "panopticon.yaml");
-	if (!fs.existsSync(filePath)) return {};
+	let dir = process.cwd();
+	let filePath = null;
+	while (true) {
+		const candidate = path.join(dir, "panopticon.yaml");
+		if (fs.existsSync(candidate)) {
+			filePath = candidate;
+			break;
+		}
+		const parent = path.dirname(dir);
+		if (parent === dir) break;
+		dir = parent;
+	}
+
+	if (!filePath) return {};
 	const raw = fs.readFileSync(filePath, "utf8");
 	try {
 		const parsed = YAML.parse(raw);
