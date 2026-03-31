@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Question } from '../types';
+import type { Question } from '../types.ts';
 
 async function postAnswer(questionId: string, answer: string) {
   const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';

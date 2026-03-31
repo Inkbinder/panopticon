@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useEventStream } from '../realtime/useEventStream';
-import type { CellSummary, LogEvent, Question } from '../types';
+import type { CellSummary, LogEvent, Question } from '../types.ts';
 import { QuestionCard } from '../widgets/QuestionCard';
 
 export function OverseerDashboardPage() {

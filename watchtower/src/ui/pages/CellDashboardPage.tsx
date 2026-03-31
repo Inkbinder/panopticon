@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useEventStream } from '../realtime/useEventStream';
-import type { LogEvent, Question } from '../types';
+import type { LogEvent, Question } from '../types.ts';
 import { QuestionCard } from '../widgets/QuestionCard';
 
 export function CellDashboardPage() {

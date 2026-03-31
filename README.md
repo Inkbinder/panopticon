@@ -1,2 +1,2 @@
 # panopticon
-Opinionated Agentic Development
+Opinionated agentic engineering with harness-based approach.

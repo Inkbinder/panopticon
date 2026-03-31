@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Question } from '../types';
+import type { Question } from '../types.ts';
 
 describe('types', () => {
   it('allows an open question shape', () => {

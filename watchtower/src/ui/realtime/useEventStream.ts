@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { CellSummary, LogEvent, Question, SseEnvelope } from '../types';
+import type { CellSummary, LogEvent, Question, SseEnvelope } from '../types.ts';
 
 type Handlers = {
   onLog?: (e: LogEvent) => void;
