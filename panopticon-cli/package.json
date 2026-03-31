@@ -7,15 +7,13 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-  "build": "tsup",
-  "typecheck": "tsc --noEmit",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@inkbinder/overseer": "*",
-    "@inkbinder/sentinel": "*",
-    "@inkbinder/watchtower": "*",
+    "@inkbinder/panopticon-daemon": "*",
     "commander": "^13.0.0",
     "cross-spawn": "^7.0.6",
     "yaml": "^2.7.0"
@@ -39,7 +37,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Inkbinder/panopticon.git",
+    "url": "git+https://github.com/Inkbinder/panopticon.git",
     "directory": "packages/panopticon-cli"
   },
   "homepage": "https://github.com/Inkbinder/panopticon#readme",
@@ -48,5 +46,8 @@
   },
   "engines": {
     "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

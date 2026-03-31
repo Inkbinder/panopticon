@@ -1,5 +1,5 @@
 {
-  "name": "@inkbinker/panopticon-wrapper",
+  "name": "@inkbinder/panopticon-wrapper",
   "private": true,
   "version": "1.0.0",
   "description": "Opinionated Agentic Engineering",
@@ -29,6 +29,7 @@
   "workspaces": [
     "panopticon",
     "panopticon-cli",
+    "panopticon-daemon",
     "overseer",
     "sentinel",
     "watchtower"
@@ -36,9 +37,13 @@
   "scripts": {
     "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
     "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
-    "build": "npm -w sentinel run build && npm -w watchtower run build",
-    "test": "npm -w sentinel test && npm -w watchtower test",
-    "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
+  "build:packages": "npm -w overseer run build && npm -w panopticon-daemon run build && npm -w panopticon-cli run build",
+  "build:web": "npm -w sentinel run build && npm -w watchtower run build",
+  "build": "npm run build:packages && npm run build:web",
+  "test:packages": "npm -w overseer test && npm -w panopticon-daemon test && npm -w panopticon-cli test",
+  "test:web": "npm -w sentinel test && npm -w watchtower test",
+  "test": "npm run test:packages && npm run test:web",
+  "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
   },
   "devDependencies": {
   "@esbuild/win32-x64": "^0.25.10",

@@ -5,11 +5,13 @@
   "type": "module",
   "bin": {
     "panopticon": "bin/panopticon.js"
-  }, 
-  "files" : ["bin"],
+  },
+  "files": [
+    "bin"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Inkbinder/panopticon.git",
+    "url": "git+https://github.com/Inkbinder/panopticon.git",
     "directory": "packages/panopticon"
   },
   "homepage": "https://github.com/Inkbinder/panopticon#readme",
@@ -20,6 +22,9 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-  "@inkbinder/panopticon-cli": "*"
+    "@inkbinder/panopticon-cli": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,5 +1,6 @@
 {
   "name": "@inkbinder/watchtower",
+  "private": true,
   "version": "0.1.0",
   "description": "Web UI for Panopticon",
   "license": "MIT",
