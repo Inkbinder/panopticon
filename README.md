@@ -1,0 +1,2 @@
+# panopticon
+Opinionated Agentic Development
