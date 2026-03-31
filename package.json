@@ -27,7 +27,10 @@
   "author": "Gareth Walkersmith",
   "type": "module",
   "workspaces": [
-  "sentinel",
+    "panopticon",
+    "panopticon-cli",
+    "overseer",
+    "sentinel",
     "watchtower"
   ],
   "scripts": {

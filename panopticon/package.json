@@ -1,0 +1,25 @@
+{
+  "name": "@inkbinder/panopticon",
+  "version": "0.1.0",
+  "description": "See everything, delivery - tracked. Global cli wrapper for panopticon.",
+  "type": "module",
+  "bin": {
+    "panopticon": "bin/panopticon.js"
+  }, 
+  "files" : ["bin"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Inkbinder/panopticon.git",
+    "directory": "packages/panopticon"
+  },
+  "homepage": "https://github.com/Inkbinder/panopticon#readme",
+  "bugs": {
+    "url": "https://github.com/Inkbinder/panopticon/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@inkbinder/panopticon-cli": "workspace:*"
+  }
+}
