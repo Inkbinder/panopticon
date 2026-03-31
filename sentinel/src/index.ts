@@ -7,6 +7,7 @@ import { createQuestionsRoutes } from './routes/questions';
 import { createCellsRoutes } from './routes/cells';
 import { createLogsRoutes } from './routes/logs';
 import { startDemoSimulator } from './demo/simulator';
+import { readPanopticonConfig } from './config';
 
 export function createApp(deps?: { bus?: InMemoryEventBus; store?: InMemoryStore }) {
   const app = express();
@@ -35,10 +36,12 @@ export function createApp(deps?: { bus?: InMemoryEventBus; store?: InMemoryStore
 }
 
 export function startServer() {
-  const PORT = Number(process.env.PORT ?? 8787);
+	const config = readPanopticonConfig();
+	const PORT = Number(config.sentinel?.port ?? 8787);
   const { app, store } = createApp();
 
-  if (process.env.DEMO_SIM === '1') {
+  const demoSim = config.sentinel?.demoSim;
+  if (demoSim === true) {
     startDemoSimulator(store);
   }
 

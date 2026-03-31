@@ -15,7 +15,8 @@
   "dependencies": {
     "node-cron": "^4.2.1",
     "winston": "^3.17.0",
-    "winston-transport": "^4.9.0"
+		"winston-transport": "^4.9.0",
+		"yaml": "^2.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

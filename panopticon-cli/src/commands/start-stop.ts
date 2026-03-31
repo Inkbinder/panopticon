@@ -30,6 +30,6 @@ export function registerStartStop(program: Command) {
 		})
 		.addHelpText(
 			"after",
-			"\n\nEnvironment:\n  PANOPTICON_DEV=1            Same as --dev\n",
+			"\n\nNotes:\n  Use --dev to run each package's dev script\n",
 		);
 }

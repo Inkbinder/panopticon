@@ -1,4 +1,7 @@
 import type { Command } from "commander";
+import fs from "node:fs";
+import path from "node:path";
+import { readPanopticonConfig } from "../lib/config";
 
 
 export type DoctorCheck = {
@@ -12,6 +15,19 @@ export function runDoctorChecks(opts?: { platform?: NodeJS.Platform }): DoctorCh
 	const checks: DoctorCheck[] = [];
 
 	checks.push({ id: "node", ok: true, message: `node ${process.version}` });
+
+	// Ensure we can find and parse panopticon.yaml in the directory the CLI is run from.
+	try {
+		const filePath = path.join(process.cwd(), "panopticon.yaml");
+		if (!fs.existsSync(filePath)) {
+			checks.push({ id: "config", ok: false, message: `Missing panopticon.yaml in ${process.cwd()}` });
+		} else {
+			readPanopticonConfig({ required: true });
+			checks.push({ id: "config", ok: true, message: `Loaded panopticon.yaml from ${process.cwd()}` });
+		}
+	} catch (err) {
+		checks.push({ id: "config", ok: false, message: String(err) });
+	}
 
 	if (platform === "win32") {
 		checks.push({

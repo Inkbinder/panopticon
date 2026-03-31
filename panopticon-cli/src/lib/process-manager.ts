@@ -45,25 +45,26 @@ function getNpmLauncher(repoRoot: string): { command: string; argsPrefix: string
 
 function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 	const root = getRepoRoot();
+	const runCwd = process.cwd();
 	return [
 		{
 			name: "sentinel",
 			label: "sentinel",
-			cwd: path.join(root, "sentinel"),
+			cwd: runCwd,
 			command: "node",
 			args: [path.join(root, "sentinel", "dist", "index.js")],
 		},
 		{
 			name: "watchtower",
 			label: "watchtower",
-			cwd: path.join(root, "watchtower"),
+			cwd: runCwd,
 			command: "node",
 			args: [path.join(root, "watchtower", "dist-server", "server.js")],
 		},
 		{
 			name: "overseer",
 			label: "overseer",
-			cwd: path.join(root, "overseer"),
+			cwd: runCwd,
 			command: "node",
 			args: [path.join(root, "overseer", "dist", "index.js")],
 		},
@@ -73,35 +74,36 @@ function getDefaultManagedProcessesProd(): ManagedProcInfo[] {
 function getDefaultManagedProcessesDev(): ManagedProcInfo[] {
 	const root = getRepoRoot();
 	const npm = getNpmLauncher(root);
-	const npmArgs = [...npm.argsPrefix, "run", "dev"];
+	const runCwd = process.cwd();
+	const npmArgs = (workspace: string) => [...npm.argsPrefix, "-w", workspace, "run", "dev"];
 
 	return [
 		{
 			name: "sentinel",
 			label: "sentinel",
-			cwd: path.join(root, "sentinel"),
+			cwd: runCwd,
 			command: npm.command,
-			args: npmArgs,
+			args: npmArgs("sentinel"),
 		},
 		{
 			name: "watchtower",
 			label: "watchtower",
-			cwd: path.join(root, "watchtower"),
+			cwd: runCwd,
 			command: npm.command,
-			args: npmArgs,
+			args: npmArgs("watchtower"),
 		},
 		{
 			name: "overseer",
 			label: "overseer",
-			cwd: path.join(root, "overseer"),
+			cwd: runCwd,
 			command: npm.command,
-			args: npmArgs,
+			args: npmArgs("overseer"),
 		},
 	];
 }
 
 export function getManagedProcesses(opts?: { dev?: boolean }): ManagedProcInfo[] {
-	const useDev = Boolean(opts?.dev) || process.env.PANOPTICON_DEV === "1";
+	const useDev = Boolean(opts?.dev) || false;
 	return useDev ? getDefaultManagedProcessesDev() : getDefaultManagedProcessesProd();
 }
 
@@ -162,7 +164,6 @@ function spawnInNewProcessGroup(proc: ManagedProcInfo): SupervisedChild {
 	const child = spawn(proc.command, proc.args, {
 		cwd: proc.cwd,
 		stdio: "inherit",
-		env: { ...process.env },
 		shell: false,
 		detached: true,
 		windowsHide: false,

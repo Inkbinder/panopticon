@@ -3,6 +3,7 @@ import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import YAML from "yaml";
 
 // Simple static file server for the built Vite app.
 // Assumes Vite build output is in ../dist relative to this file.
@@ -10,13 +11,27 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function readPanopticonConfig() {
+	const filePath = path.join(process.cwd(), "panopticon.yaml");
+	if (!fs.existsSync(filePath)) return {};
+	const raw = fs.readFileSync(filePath, "utf8");
+	try {
+		const parsed = YAML.parse(raw);
+		return parsed && typeof parsed === "object" ? parsed : {};
+	} catch {
+		return {};
+	}
+}
+
+const config = readPanopticonConfig();
+
 const root = path.resolve(__dirname, "..", "dist");
-const port = Number(process.env.PORT ?? 5173);
-const host = process.env.HOST ?? "0.0.0.0";
+const port = Number(config.watchtower?.port ?? 5173);
+const host = config.watchtower?.host ?? "0.0.0.0";
 
 // Reverse-proxy target for API requests (sentinel).
 // In prod, the Vite build calls /api/* on the same origin; this server must forward that.
-const apiBaseUrl = new URL(process.env.API_BASE_URL ?? "http://localhost:8787");
+const apiBaseUrl = new URL(config.watchtower?.apiBaseUrl ?? "http://localhost:8787");
 
 const mime = {
 	".html": "text/html; charset=utf-8",

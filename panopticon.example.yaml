@@ -1,0 +1,45 @@
+# Example configuration for Panopticon.
+#
+# Copy this file to `panopticon.yaml` in the directory where you run `panopticon`.
+#
+# Top-level keys:
+# - overseer
+# - sentinel
+# - watchtower
+
+sentinel:
+  # HTTP port for the Sentinel API server.
+  port: 8787
+
+  # Enable the built-in demo simulator.
+  # Accepts: true/false
+  demoSim: false
+
+overseer:
+  # Directory where Overseer writes logs.
+  # Default (if omitted): <cwd>/logs
+  logDir: ./logs
+
+  # Winston-style log levels.
+  # Common values: error, warn, info, http, verbose, debug, silly
+  logLevel: info
+  consoleLogLevel: info
+  fileLogLevel: debug
+
+  # Sentinel base URL (used for API + log shipping).
+  sentinelUrl: http://localhost:8787
+
+  # Alias for sentinelUrl (some components use this name).
+  # apiBaseUrl: http://localhost:8787
+
+  # Log shipping tuning.
+  sentinelLogTimeoutMs: 2000
+  sentinelLogMaxQueue: 500
+
+watchtower:
+  # Port/host for the Watchtower static server (serves the built UI).
+  port: 5173
+  host: 0.0.0.0
+
+  # Where Watchtower should proxy /api requests to (Sentinel).
+  apiBaseUrl: http://localhost:8787
