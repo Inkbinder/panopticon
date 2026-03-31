@@ -2,6 +2,7 @@
 
 import { Command } from "commander";
 import { registerDoctor } from "./commands/doctor.js";
+import { registerStartStop } from "./commands/start-stop.js";
 
 const program = new Command();
 
@@ -12,6 +13,7 @@ program
   .version("0.1.0");
 
 registerDoctor(program);
+registerStartStop(program);
 
 // Parse argv at module top-level so `import "@inkbinder/panopticon-cli"` executes the CLI.
 program.parseAsync(process.argv).catch((err) => {

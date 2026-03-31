@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { InMemoryEventBus } from '../events/bus';
+import { InMemoryEventBus } from '../events/bus.js';
 
 describe('InMemoryEventBus', () => {
   it('unsubscribes and calls close', () => {
@@ -11,7 +11,7 @@ describe('InMemoryEventBus', () => {
     const unsubscribe = bus.subscribe({
       id: 'x',
       filter: () => true,
-      send: (m) => received.push(m),
+  send: (m: any) => received.push(m),
       close: () => {
         closed += 1;
       },

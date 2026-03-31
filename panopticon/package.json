@@ -20,6 +20,6 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@inkbinder/panopticon-cli": "workspace:*"
+  "@inkbinder/panopticon-cli": "*"
   }
 }

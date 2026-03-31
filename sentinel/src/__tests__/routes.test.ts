@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { createApp } from '../index';
-import { makeFilter } from '../routes/events';
+import { createApp } from '../index.js';
+import { makeFilter } from '../routes/events.js';
 
 describe('sentinel routes', () => {
   it('GET /api/health returns ok', async () => {

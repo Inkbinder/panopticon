@@ -1,4 +1,4 @@
-import type { InMemoryStore } from '../state/store';
+import type { InMemoryStore } from '../state/store.js';
 
 const sample = [
   'Spawning cell',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { InMemoryEventBus } from '../events/bus';
-import { InMemoryStore } from '../state/store';
+import { InMemoryEventBus } from '../events/bus.js';
+import { InMemoryStore } from '../state/store.js';
 
 describe('InMemoryStore', () => {
   it('publishes question.upsert on create and answer', () => {
@@ -11,7 +11,7 @@ describe('InMemoryStore', () => {
     bus.subscribe({
       id: 't',
       filter: () => true,
-      send: (m) => published.push(m),
+  send: (m: any) => published.push(m),
       close: () => {},
     });
 
@@ -46,18 +46,18 @@ describe('InMemoryStore', () => {
     store.createQuestion({ scope: 'cell', cellId: 'alpha', fromAgent: 'guard', prompt: 'q1' });
     store.createQuestion({ scope: 'cell', cellId: 'bravo', fromAgent: 'guard', prompt: 'q2' });
 
-    const onlyAlpha = store.snapshotForSubscriber((m) => {
+  const onlyAlpha = store.snapshotForSubscriber((m: any) => {
       if (m.type === 'cell.upsert') return m.data.cellId === 'alpha';
       if (m.type === 'question.upsert') return m.data.cellId === 'alpha';
       return false;
     });
-    expect(onlyAlpha.some((e) => e.type === 'cell.upsert' && e.data.cellId === 'alpha')).toBe(true);
-    expect(onlyAlpha.some((e) => e.type === 'cell.upsert' && e.data.cellId === 'bravo')).toBe(false);
-    expect(onlyAlpha.some((e) => e.type === 'question.upsert' && e.data.cellId === 'alpha')).toBe(true);
-    expect(onlyAlpha.some((e) => e.type === 'question.upsert' && e.data.cellId === 'bravo')).toBe(false);
+  expect(onlyAlpha.some((e: any) => e.type === 'cell.upsert' && e.data.cellId === 'alpha')).toBe(true);
+  expect(onlyAlpha.some((e: any) => e.type === 'cell.upsert' && e.data.cellId === 'bravo')).toBe(false);
+  expect(onlyAlpha.some((e: any) => e.type === 'question.upsert' && e.data.cellId === 'alpha')).toBe(true);
+  expect(onlyAlpha.some((e: any) => e.type === 'question.upsert' && e.data.cellId === 'bravo')).toBe(false);
 
     store.removeCell('alpha');
-    expect(store.listCells().some((c) => c.cellId === 'alpha')).toBe(false);
+  expect(store.listCells().some((c: any) => c.cellId === 'alpha')).toBe(false);
   });
 
   it('appendLog and touchAgentState publish events', () => {
@@ -68,7 +68,7 @@ describe('InMemoryStore', () => {
     bus.subscribe({
       id: 't',
       filter: () => true,
-      send: (m) => published.push(m),
+  send: (m: any) => published.push(m),
       close: () => {},
     });
 
