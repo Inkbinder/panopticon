@@ -2,6 +2,24 @@ import type { Command } from "commander";
 import { stopDaemon, startDaemon } from "../lib/daemon-client";
 
 export function registerStartStop(program: Command) {
+	if (process.platform === "win32") {
+		program
+			.command("start")
+			.description("Start sentinel, watchtower, and overseer")
+			.action(() => {
+				throw new Error("Windows is not supported. Run this CLI in WSL2 or a Linux dev container.");
+			});
+
+		program
+			.command("stop")
+			.description("Stop sentinel, watchtower, and overseer")
+			.action(() => {
+				throw new Error("Windows is not supported. Run this CLI in WSL2 or a Linux dev container.");
+			});
+
+		return;
+	}
+
 	program
 		.command("start")
 		.description("Start sentinel, watchtower, and overseer")

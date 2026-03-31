@@ -13,7 +13,7 @@ export type DoctorCheck = {
 function getRepoRoot(): string {
 	const here = path.dirname(fileURLToPath(import.meta.url));
 	// panopticon-cli/src/commands -> repo root is ../../..
-	return path.resolve(here, "../../.. ".trim());
+	return path.resolve(here, "../../..");
 }
 
 function getInstalledDaemonRoot(): string {
@@ -31,23 +31,10 @@ export function runDoctorChecks(opts?: { platform?: NodeJS.Platform }): DoctorCh
 	checks.push({ id: "node", ok: true, message: `node ${process.version}` });
 
 	if (platform === "win32") {
-		// Prefer installed daemon package location.
-		// Fallback to repo root (dev workspace) if resolution fails.
-		let daemonRoot: string;
-		try {
-			daemonRoot = getInstalledDaemonRoot();
-		} catch {
-			daemonRoot = path.join(getRepoRoot(), "panopticon-daemon");
-		}
-		const platArch = `${platform}-${process.arch}`;
-		const helperExe = path.join(daemonRoot, "native", "bin", platArch, "spawn_job_win32.exe");
-		const helperExists = fs.existsSync(helperExe);
 		checks.push({
-			id: "win32-job-helper",
-			ok: helperExists,
-			message: helperExists
-				? `Windows job helper present: ${helperExe}`
-				: `Windows job helper missing for ${platArch}: ${helperExe}`,
+			id: "platform",
+			ok: false,
+			message: "Windows is not supported. Use WSL2, a Linux VM, or a Linux dev container.",
 		});
 	}
 

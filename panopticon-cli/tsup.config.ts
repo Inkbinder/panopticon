@@ -8,8 +8,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   dts: true,
-  // Keep the CLI shebang when bundling.
-  banner: {
-    js: '#!/usr/bin/env node',
-  },
+  // Note: `src/index.ts` already has a shebang. Adding a tsup `banner` duplicates
+  // it in `dist/index.js`, and Node ESM will throw a SyntaxError on the 2nd one.
 });
