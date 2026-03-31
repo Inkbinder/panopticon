@@ -53,6 +53,8 @@ export function QuestionCard({ question }: { question: Question }) {
               try {
                 await postAnswer(question.id, answer.trim());
                 setAnswer('');
+              } catch {
+                // Intentionally swallow: the UI currently doesn't render an error state.
               } finally {
                 setBusy(false);
               }

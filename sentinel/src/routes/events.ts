@@ -4,7 +4,7 @@ import type { SseEnvelope } from '../events/types';
 import type { InMemoryEventBus } from '../events/bus';
 import type { InMemoryStore } from '../state/store';
 
-function makeFilter(req: Request) {
+export function makeFilter(req: Request) {
   const scope = (req.query.scope ?? 'overseer') as string;
   const cellId = (req.query.cellId ?? '') as string;
 
