@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { registerDoctor } from "./commands/doctor.js";
-import { registerStartStop } from "./commands/start-stop.js";
+import { registerDoctor } from "./commands/doctor";
+import { registerStartStop } from "./commands/start-stop";
 
 const program = new Command();
 

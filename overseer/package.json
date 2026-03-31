@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc -b",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+  "build": "tsup",
+  "typecheck": "tsc --noEmit",
+  "test": "vitest run --passWithNoTests",
+  "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "node-cron": "^4.2.1"

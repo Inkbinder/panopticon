@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { InMemoryEventBus } from './events/bus.js';
-import { InMemoryStore } from './state/store.js';
-import { createEventsRoute } from './routes/events.js';
-import { createQuestionsRoutes } from './routes/questions.js';
-import { createCellsRoutes } from './routes/cells.js';
-import { startDemoSimulator } from './demo/simulator.js';
+import { InMemoryEventBus } from './events/bus';
+import { InMemoryStore } from './state/store';
+import { createEventsRoute } from './routes/events';
+import { createQuestionsRoutes } from './routes/questions';
+import { createCellsRoutes } from './routes/cells';
+import { startDemoSimulator } from './demo/simulator';
 
 export function createApp(deps?: { bus?: InMemoryEventBus; store?: InMemoryStore }) {
   const app = express();

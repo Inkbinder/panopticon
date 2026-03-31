@@ -1,4 +1,4 @@
-import type { SseEnvelope } from './types.js';
+import type { SseEnvelope } from './types';
 
 export type Subscriber = {
   id: string;

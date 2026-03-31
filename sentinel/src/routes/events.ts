@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import crypto from 'node:crypto';
-import type { SseEnvelope } from '../events/types.js';
-import type { InMemoryEventBus } from '../events/bus.js';
-import type { InMemoryStore } from '../state/store.js';
+import type { SseEnvelope } from '../events/types';
+import type { InMemoryEventBus } from '../events/bus';
+import type { InMemoryStore } from '../state/store';
 
 export function makeFilter(req: Request) {
   const scope = (req.query.scope ?? 'overseer') as string;

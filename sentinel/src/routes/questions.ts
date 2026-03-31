@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { InMemoryStore } from '../state/store.js';
+import type { InMemoryStore } from '../state/store';
 
 export function createQuestionsRoutes(store: InMemoryStore) {
   return {

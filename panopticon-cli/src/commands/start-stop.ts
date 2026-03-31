@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { stopAll, superviseAll } from "../lib/process-manager.js";
+import { stopAll, superviseAll } from "../lib/process-manager";
 
 export function registerStartStop(program: Command) {
 	program

@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
-import type { AgentRole, AgentState, CellSummary, LogEvent, Question, SseEnvelope } from '../events/types.js';
-import { InMemoryEventBus } from '../events/bus.js';
+import type { AgentRole, AgentState, CellSummary, LogEvent, Question, SseEnvelope } from '../events/types';
+import { InMemoryEventBus } from '../events/bus';
 
 type CellRecord = {
   summary: CellSummary;

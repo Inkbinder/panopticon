@@ -54,7 +54,7 @@ describe("start/stop", () => {
 	});
 
 	it("startAll writes pids for sentinel/watchtower/overseer", async () => {
-		const { startAll } = await import("../lib/process-manager.js");
+		const { startAll } = await import("../lib/process-manager");
 		// ensure isPidRunning returns false for any stale pid
 		kill.mockImplementation(((pid: number, signal?: any) => {
 			if (signal === 0) throw new Error("ESRCH");
@@ -89,7 +89,7 @@ describe("start/stop", () => {
 			return true as any;
 		}) as any);
 
-		const { startAll } = await import("../lib/process-manager.js");
+		const { startAll } = await import("../lib/process-manager");
 		await startAll({ dev: true, stateDir: "C:/tmp" });
 
 		expect(spawn).not.toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe("start/stop", () => {
 			return undefined as any;
 		}) as any);
 
-		const { startAll } = await import("../lib/process-manager.js");
+		const { startAll } = await import("../lib/process-manager");
 		await startAll({ dev: true, stateDir: "C:/tmp" });
 		expect(spawn).toHaveBeenCalled();
 	});
@@ -123,7 +123,7 @@ describe("start/stop", () => {
 		}) as any);
 		spawn.mockImplementation(() => ({ pid: 0, once: vi.fn() }) as any);
 
-		const { startAll } = await import("../lib/process-manager.js");
+		const { startAll } = await import("../lib/process-manager");
 		await expect(startAll({ dev: true, stateDir: "C:/tmp" })).rejects.toThrow(
 			/failed to spawn/i,
 		);
@@ -153,7 +153,7 @@ describe("start/stop", () => {
 			return undefined as any;
 		}) as any);
 
-		const { stopAll } = await import("../lib/process-manager.js");
+		const { stopAll } = await import("../lib/process-manager");
 		await stopAll({ timeoutMs: 1, stateDir: "C:/tmp" });
 
 		// at least one SIGTERM per process
@@ -176,7 +176,7 @@ describe("start/stop", () => {
 			return undefined as any;
 		}) as any);
 
-		const { stopAll } = await import("../lib/process-manager.js");
+		const { stopAll } = await import("../lib/process-manager");
 		await stopAll({ timeoutMs: 1, stateDir: "C:/tmp" });
 
 		// Only the signal=0 checks should have happened
@@ -186,7 +186,7 @@ describe("start/stop", () => {
 
 	it("readState falls back when state file is invalid", async () => {
 		readFileSync.mockReturnValue("{\"version\":999,\"processes\":{}}");
-		const { readState } = await import("../lib/process-manager.js");
+		const { readState } = await import("../lib/process-manager");
 		const state = readState("C:/tmp");
 		expect(state.version).toBe(1);
 		expect(state.processes).toEqual({});
@@ -200,7 +200,7 @@ describe("start/stop", () => {
 			return undefined as any;
 		}) as any);
 
-		const { superviseAll } = await import("../lib/process-manager.js");
+		const { superviseAll } = await import("../lib/process-manager");
 		// Resolve immediately by making children count as exited.
 		spawn.mockImplementation(() => ({
 			pid: 123,

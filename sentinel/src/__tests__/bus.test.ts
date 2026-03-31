@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { InMemoryEventBus } from '../events/bus.js';
+import { InMemoryEventBus } from '../events/bus';
 
 describe('InMemoryEventBus', () => {
   it('unsubscribes and calls close', () => {

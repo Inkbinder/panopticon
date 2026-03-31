@@ -34,14 +34,16 @@
     "watchtower"
   ],
   "scripts": {
-  "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
-  "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
-  "build": "npm -w sentinel run build && npm -w watchtower run build",
-  "test": "npm -w sentinel test && npm -w watchtower test",
-  "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
+    "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
+    "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
+    "build": "npm -w sentinel run build && npm -w watchtower run build",
+    "test": "npm -w sentinel test && npm -w watchtower test",
+    "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
   },
   "devDependencies": {
+  "@esbuild/win32-x64": "^0.25.10",
     "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "tsup": "^8.5.0"
   }
 }

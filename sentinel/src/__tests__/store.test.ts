@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { InMemoryEventBus } from '../events/bus.js';
-import { InMemoryStore } from '../state/store.js';
+import { InMemoryEventBus } from '../events/bus';
+import { InMemoryStore } from '../state/store';
 
 describe('InMemoryStore', () => {
   it('publishes question.upsert on create and answer', () => {
