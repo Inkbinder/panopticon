@@ -104,6 +104,17 @@ export const questionAnswerBodySchema = z.object({ answer: trimmedString }).stri
 export const cellIdParamsSchema = z.object({ cellId: trimmedString }).strict();
 export const setAgentStateParamsSchema = z.object({ cellId: trimmedString, role: cellAgentRoleSchema }).strict();
 export const setAgentStateBodySchema = z.object({ state: agentStateSchema }).strict();
+export const eventsQuerySchema = z
+  .object({
+    scope: scopeSchema.optional().default('overseer'),
+    cellId: trimmedString.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope === 'cell' && !value.cellId) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'cellId is required for cell scope', path: ['cellId'] });
+    }
+  });
 
 function formatIssues(error: z.ZodError): string {
   return error.issues

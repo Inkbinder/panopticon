@@ -34,6 +34,7 @@ Current root commands:
 - `npm run dev`
 - `npm run dev:demo`
 - `npm run check`
+- `npm run invariants`
 - `npm run smoke`
 - `npm run build`
 - `npm test`

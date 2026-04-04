@@ -101,6 +101,12 @@ Run the default validation contract for a change:
 npm run check
 ```
 
+Run the structural invariant checks directly:
+
+```bash
+npm run invariants
+```
+
 Run the built harness smoke test directly:
 
 ```bash

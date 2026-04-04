@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Request } from 'express';
 import request from 'supertest';
 import { createApp } from '../index';
 import { makeFilter } from '../routes/events';
 import type { CellSummary, SseEnvelope } from '../events/types';
-
-function buildRequestWithQuery(query: Record<string, string>): Request {
-  return { query } as unknown as Request;
-}
 
 function makeCellUpsert(cellId: string): Extract<SseEnvelope, { type: 'cell.upsert' }> {
   const cell: CellSummary = {
@@ -119,8 +114,18 @@ describe('sentinel routes', () => {
     expect(published.some((m) => m.type === 'log' && m.data.message === 'hello')).toBe(true);
   });
 
+  it('GET /api/events validates query params', async () => {
+    const { app } = createApp();
+
+    const invalidScope = await request(app).get('/api/events?scope=weird');
+    expect(invalidScope.status).toBe(400);
+
+    const missingCellId = await request(app).get('/api/events?scope=cell');
+    expect(missingCellId.status).toBe(400);
+  });
+
   it('events filter includes only matching cell-scoped messages', () => {
-    const filter = makeFilter(buildRequestWithQuery({ scope: 'cell', cellId: 'alpha' }));
+    const filter = makeFilter({ scope: 'cell', cellId: 'alpha' });
 
     expect(filter(makeCellUpsert('alpha'))).toBe(true);
     expect(filter(makeCellUpsert('bravo'))).toBe(false);
@@ -146,13 +151,10 @@ describe('sentinel routes', () => {
   });
 
   it('events filter allows all messages for overseer scope and rejects unknown scope', () => {
-    const overseer = makeFilter(buildRequestWithQuery({ scope: 'overseer' }));
+    const overseer = makeFilter({ scope: 'overseer' });
     expect(overseer({ type: 'cell.remove', data: { cellId: 'x' } })).toBe(true);
     expect(
       overseer({ type: 'question.upsert', data: { scope: 'cell', cellId: 'x', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } }),
     ).toBe(true);
-
-    const unknown = makeFilter(buildRequestWithQuery({ scope: 'weird', cellId: 'x' }));
-    expect(unknown({ type: 'cell.remove', data: { cellId: 'x' } })).toBe(false);
   });
 });

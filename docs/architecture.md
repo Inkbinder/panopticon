@@ -37,4 +37,14 @@ Panopticon is a small Node/TypeScript monorepo with five workspaces:
 - Parse and validate external data at boundaries.
 - Prefer deterministic startup and teardown paths that can be run in CI.
 
+## Enforced constraints
+
+The repo now enforces a lightweight subset of those constraints mechanically through `npm run invariants`:
+
+- Workspace source files may not import another workspace's private `src/` or `bin/` tree.
+- Sentinel route files must parse ingress data through `sentinel/src/validation.ts`.
+- Config readers must validate `panopticon.yaml` with their shared schema before use.
+- Watchtower event-stream handling must route payloads through the shared SSE parser.
+- Overseer source must use the structured logger path instead of direct `console` calls.
+
 When these constraints change, update this file in the same change.

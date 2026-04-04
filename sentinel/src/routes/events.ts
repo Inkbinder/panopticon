@@ -3,10 +3,10 @@ import crypto from 'node:crypto';
 import type { SseEnvelope } from '../events/types';
 import type { InMemoryEventBus } from '../events/bus';
 import type { InMemoryStore } from '../state/store';
+import { eventsQuerySchema, sendValidationError } from '../validation';
 
-export function makeFilter(req: Request) {
-  const scope = (req.query.scope ?? 'overseer') as string;
-  const cellId = (req.query.cellId ?? '') as string;
+export function makeFilter(query: { scope: 'overseer' | 'cell'; cellId?: string }) {
+  const { scope, cellId = '' } = query;
 
   return (msg: SseEnvelope) => {
     if (scope === 'overseer') {
@@ -28,6 +28,16 @@ export function makeFilter(req: Request) {
 
 export function createEventsRoute(bus: InMemoryEventBus, store: InMemoryStore) {
   return (req: Request, res: Response) => {
+    const parsedQuery = eventsQuerySchema.safeParse({
+      scope: typeof req.query.scope === 'string' ? req.query.scope : undefined,
+      cellId: typeof req.query.cellId === 'string' ? req.query.cellId : undefined,
+    });
+
+    if (!parsedQuery.success) {
+      sendValidationError(res, parsedQuery.error);
+      return;
+    }
+
     res.status(200);
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -39,7 +49,7 @@ export function createEventsRoute(bus: InMemoryEventBus, store: InMemoryStore) {
     // Initial newline to establish the stream in some proxies.
     res.write(': connected\n\n');
 
-    const filter = makeFilter(req);
+    const filter = makeFilter(parsedQuery.data);
 
     // Send a snapshot so the UI can paint immediately.
     for (const ev of store.snapshotForSubscriber(filter)) {

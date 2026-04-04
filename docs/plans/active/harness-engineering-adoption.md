@@ -126,7 +126,7 @@ Implemented contract:
 
 ### PR6: Architecture and taste invariants
 
-Status: in progress.
+Status: complete.
 
 Scope:
 
@@ -141,10 +141,14 @@ Acceptance criteria:
 - Review comments about the same recurring problems become less common.
 - The lint contract catches more architectural and typing drift than the PR2 baseline.
 
-Progress so far:
+Implemented contract:
 
-- Repo-wide `@typescript-eslint/no-explicit-any` is re-enabled and the current usages have been removed.
-- Remaining PR6 work is structural enforcement and remediation-oriented rule design.
+- Repo-wide `@typescript-eslint/no-explicit-any` is re-enabled and enforced.
+- `npm run invariants` enforces lightweight package-boundary rules and repo-specific contracts.
+- Sentinel routes must parse external input through the shared validation module.
+- Config readers and Watchtower SSE handling are checked for shared boundary parsing.
+- Overseer source is prevented from bypassing structured logging with direct `console` calls.
+- Invariant failures include remediation guidance instead of only raw rule names.
 
 ### PR7: Worktree-friendly local harness
 
