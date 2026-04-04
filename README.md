@@ -4,7 +4,7 @@ Opinionated agentic engineering with a harness-based approach.
 
 ## Overview
 
-The panopticon is an approach to agentic delivery that aims to address some of the more common questions we have as engineering professionals; questions like 'Can I trust the output?', 'What is my agent doing?' and 'What is my agent team actually even doing right now?'.
+The panopticon is an approach to agentic delivery that aims to address some of the more common questions we have as engineering professionals; questions like 'Can I trust the output?', 'What did my agent do?' and 'What is my agent team actually even doing right now?'.
 
 This approach comes with some assumptions - the main one being that the principles of harness engineering outline by OpenAI [here](https://openai.com/index/harness-engineering/) are being adopted.
 
@@ -12,6 +12,10 @@ What that effectively means is:
 - that *everything* is in the repository - specs, decision logs, expectations
 - that everything is validatable, observable and self-correction is possible
 - that the repository is build to be agent legible from the ground up
+
+What panopticon adds - the harness based engineering process still relies entirely on agents to follow instructions and not go off task. What this means is that we end up having to add stringent safety guards in our CI processes that produce helpful remediation hints for our agents to then consume.  What this means though is that the cycle time becomes much longer - building the PR takes time, running the CI can be costly in time and money both.  Panopticon brings this to your engineers machines in the form of the guard.
+
+The guard runs an explicit set of steps locally before any work is allowed to be pushed as a PR candidate.  It's not quite a CI workflow, more like a pre-flight checklist.  You wouldn't want your pilot to take off without checking their plane was in order, so why let your agents raise PRs that fail the basics.
 
 
 ## Architecture
