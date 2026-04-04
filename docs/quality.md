@@ -37,7 +37,7 @@ PR6 is now complete. The repo enforces `no-explicit-any`, runs a structural inva
 
 - Package layering model and enforcement (PR10).
 - Expand the runtime smoke harness scenarios (PR11).
-- Recurring garbage-collection automation (PR12).
+- Recurring garbage-collection automation (PR12). Completed via scheduled CI that runs `npm run check`.
 
 ## Target invariants
 

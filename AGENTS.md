@@ -10,6 +10,7 @@ Use this file as a map, not as the full source of truth.
 - Read [docs/index.md](docs/index.md) for the repository map.
 - Read [docs/architecture.md](docs/architecture.md) before changing package boundaries or runtime flow.
 - Read [docs/quality.md](docs/quality.md) before changing tests, logging, validation, or CI.
+- Read [docs/human-review.md](docs/human-review.md) for judgment-call review gates.
 
 ## Repository layout
 

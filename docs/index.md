@@ -7,6 +7,7 @@ Start small, then go deeper:
 - [../AGENTS.md](../AGENTS.md): short entry point for agents and contributors.
 - [architecture.md](architecture.md): package responsibilities, runtime flow, and intended boundaries.
 - [quality.md](quality.md): current validation expectations and gaps to close.
+- [human-review.md](human-review.md): judgment calls that should be reviewed by a human.
 - [plans/active/harness-engineering-adoption.md](plans/active/harness-engineering-adoption.md): staged rollout plan for moving this repo toward a harness-engineering workflow.
 
 ## Principles

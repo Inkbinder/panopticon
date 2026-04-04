@@ -254,7 +254,7 @@ Implemented contract:
 
 ### PR12: Recurring garbage-collection automation
 
-Status: proposed.
+Status: complete.
 
 Scope:
 
@@ -265,6 +265,11 @@ Acceptance criteria:
 
 - Drift in docs/invariants is detected early without relying on manual review.
 - Maintenance tasks are encoded into the repository feedback loop.
+
+Implemented contract:
+
+- A scheduled GitHub Actions workflow runs `npm ci` and `npm run check` weekly.
+- The job fails loudly (no automated fix-up PRs) so drift is visible and actionable.
 
 ## Risks
 
