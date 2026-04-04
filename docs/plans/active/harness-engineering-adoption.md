@@ -192,6 +192,62 @@ Implemented contract:
 - Test routers use the same future-flag configuration as the runtime entrypoint.
 - Router warning cleanup is handled in app configuration rather than test-only suppression.
 
+### PR9: Docs freshness and link checks
+
+Status: proposed.
+
+Scope:
+
+- Bring the documented “gaps” and “definition of done” back in sync with the actual repo checks.
+- Add a lightweight `docs:check` script to validate internal links and basic doc structure.
+- Run `docs:check` as part of `npm run check`.
+
+Acceptance criteria:
+
+- `npm run check` fails if docs links are broken or required doc structure drifts.
+- Documentation claims about existing invariants/smoke paths match reality.
+
+### PR10: Package layering model and enforcement
+
+Status: proposed.
+
+Scope:
+
+- Document a simple internal layering model inside each workspace (start with 1–2 rules per package).
+- Extend `npm run invariants` to mechanically enforce allowed dependency directions.
+
+Acceptance criteria:
+
+- Internal package boundaries are predictable for agents and humans.
+- Violations produce remediation-oriented messages.
+
+### PR11: Expand the runtime smoke harness scenarios
+
+Status: proposed.
+
+Scope:
+
+- Add 2–3 additional deterministic harness scenarios beyond “it boots” (e.g., a full question lifecycle, SSE reconnect, log ingestion path).
+- Prefer explicit readiness and state assertions over timing-only checks.
+
+Acceptance criteria:
+
+- `npm run smoke` catches representative end-to-end regressions with actionable failure output.
+
+### PR12: Recurring garbage-collection automation
+
+Status: proposed.
+
+Scope:
+
+- Add scheduled CI that runs the default validation contract plus docs freshness checks.
+- Decide whether the job should fail loudly or open automated fix-up PRs.
+
+Acceptance criteria:
+
+- Drift in docs/invariants is detected early without relying on manual review.
+- Maintenance tasks are encoded into the repository feedback loop.
+
 ## Risks
 
 - Over-documenting before checks exist will create stale guidance.

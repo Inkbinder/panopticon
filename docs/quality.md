@@ -46,6 +46,10 @@ These are the first invariants to encode mechanically:
 4. The local harness can start and stop cleanly.
 5. Repository guidance lives in versioned docs, not only in chat or memory.
 
+## Planning expectation
+
+- When work is intentionally multi-step (multiple PRs) or changes harness/CI/invariants/architecture, the change should start by adding or updating a plan under `docs/plans/active/`.
+
 ## PR6 lint tightening target
 
 PR6 should tighten the lint contract in small, explicit steps:
