@@ -17,6 +17,17 @@ What panopticon adds - the harness based engineering process still relies entire
 
 The guard runs an explicit set of steps locally before any work is allowed to be pushed as a PR candidate.  It's not quite a CI workflow, more like a pre-flight checklist.  You wouldn't want your pilot to take off without checking their plane was in order, so why let your agents raise PRs that fail the basics.
 
+## The Nuts and Guts
+
+So what, actually, is happening.  The core parts of panopticon are:
+- Overseer - this runs a loop, the loop triggers a prompt, the prompt tells overseer to review any updates from the active cellblocks, close completed ones, check for answers to any questions it asked, review active plans, check for any work that is not yet in progress and create a cellblock to handle it if it is deliverable. 
+- Sentinel - This recieves all the messages and acts as a central messaging hub between the human and the agent
+- Watchtower - The web ui which sits on sentinel surfacing the information and questions, statuses and progress of the Overseer and the cellblocks
+- Warden - Like Overseer, but for the cellblock level, it runs a loop which triggers a prompt, the prompt tells the Warden to review and updates from the Cells, close completed ones, check for answer to any question it asked, check for completion and notify the overseer when it believes work is complete
+- Guard - An explicit set of commands to run before allowing a PR to be raised, this ensures that your tests are always run, your doc checks are clean, and anything else you need to have done before a PR gets raised is managed.
+- Citizen - Your agent worker, it actually does the work in the plan. This triggers a call to 'ai agent' (codex, claude, ghcp etc) passing in the work that needs to be done, assigned to it by the Warden.  When this command completes the guard is automatically triggered. If the guard returns success then the Warden is notified and the PR can be raised, if not then the 'ai agent' is called again with the failure response from the guard. 
+
+Each of these has access to the documentation of the project. OVERSEER and CITIZEN could be handled as SKILLS if supported by the 'ai agent' in question.
 
 ## Architecture
 
