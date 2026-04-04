@@ -18,6 +18,8 @@ Today, the repo can usually validate a change with some subset of:
 
 `npm run smoke` is the focused runtime contract for the harness itself. It builds the repo, starts the supervised stack on temporary ports, verifies health through Watchtower's proxy, performs a representative write, confirms the result through SSE, and checks that shutdown is clean.
 
+The checked-in local runtime configuration now defaults to `runtime.portStrategy: worktree`, so concurrent local copies of the repo do not need manual port edits unless fixed ports are explicitly required.
+
 ## Current lint baseline
 
 The current lint baseline is stricter than the original PR2 floor:

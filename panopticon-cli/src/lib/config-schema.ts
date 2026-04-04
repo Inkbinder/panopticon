@@ -3,6 +3,13 @@ import { z } from 'zod';
 const nonEmptyString = z.string().trim().min(1);
 const nonNegativeInteger = z.number().int().min(0);
 const portNumber = z.number().int().min(1).max(65_535);
+const portStrategySchema = z.enum(['fixed', 'worktree']);
+
+const runtimeConfigSchema = z
+  .object({
+    portStrategy: portStrategySchema.optional(),
+  })
+  .strict();
 
 const overseerConfigSchema = z
   .object({
@@ -34,6 +41,7 @@ const watchtowerConfigSchema = z
 
 export const panopticonConfigSchema = z
   .object({
+    runtime: runtimeConfigSchema.optional(),
     overseer: overseerConfigSchema.optional(),
     sentinel: sentinelConfigSchema.optional(),
     watchtower: watchtowerConfigSchema.optional(),
@@ -41,6 +49,42 @@ export const panopticonConfigSchema = z
   .strict();
 
 export type PanopticonConfig = z.infer<typeof panopticonConfigSchema>;
+
+function getWorktreePortOffset(cwd: string): number {
+  let hash = 0;
+  for (const char of cwd) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return 1 + (hash % 1000);
+}
+
+export function resolvePanopticonConfig(config: PanopticonConfig, cwd: string): PanopticonConfig {
+  const useWorktreePorts = config.runtime?.portStrategy === 'worktree';
+  const offset = useWorktreePorts ? getWorktreePortOffset(cwd) : 0;
+  const sentinelPort = config.sentinel?.port ?? (8787 + offset);
+  const watchtowerPort = config.watchtower?.port ?? (5173 + offset);
+  const sentinelBaseUrl = `http://127.0.0.1:${sentinelPort}`;
+  const overseerBaseUrl = config.overseer?.apiBaseUrl ?? config.overseer?.sentinelUrl ?? sentinelBaseUrl;
+
+  return {
+    ...config,
+    sentinel: {
+      ...config.sentinel,
+      port: sentinelPort,
+    },
+    overseer: {
+      ...config.overseer,
+      sentinelUrl: config.overseer?.sentinelUrl ?? overseerBaseUrl,
+      apiBaseUrl: config.overseer?.apiBaseUrl ?? overseerBaseUrl,
+    },
+    watchtower: {
+      ...config.watchtower,
+      port: watchtowerPort,
+      host: config.watchtower?.host ?? '0.0.0.0',
+      apiBaseUrl: config.watchtower?.apiBaseUrl ?? sentinelBaseUrl,
+    },
+  };
+}
 
 export function formatConfigValidationError(error: z.ZodError): string {
   return error.issues

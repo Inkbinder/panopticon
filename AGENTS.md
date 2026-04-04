@@ -39,6 +39,8 @@ Current root commands:
 - `npm run build`
 - `npm test`
 
+The checked-in `panopticon.yaml` defaults to worktree-derived local ports. If a local run does not appear on `8787/5173`, read the startup logs for the resolved URLs.
+
 Package-level commands vary. Before adding new rules, update the relevant package scripts and document them in [docs/quality.md](docs/quality.md).
 
 ## Active plan

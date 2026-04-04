@@ -51,6 +51,8 @@ npm run dev
 - Sentinel (API): `http://localhost:8787`
 - Watchtower (UI): `http://localhost:5173` (proxies `/api` to Sentinel)
 
+If `runtime.portStrategy: worktree` is enabled, those ports are derived from the checkout path instead of staying fixed. The actual URLs are printed when the stack starts.
+
 ### Demo mode
 
 Publishes fake overseer/cell activity into Sentinel:
@@ -114,6 +116,14 @@ npm run smoke
 ```
 
 `npm run smoke` builds the workspaces, starts the supervised local stack on isolated ports, verifies health through Watchtower's `/api` proxy, performs a representative API write, observes the result through SSE, and confirms clean shutdown.
+
+## Worktree-local ports
+
+The checked-in `panopticon.yaml` uses `runtime.portStrategy: worktree` by default.
+
+- Each checkout gets a deterministic Sentinel and Watchtower port pair derived from its path.
+- `overseer.sentinelUrl` and `watchtower.apiBaseUrl` follow the resolved Sentinel port automatically unless you override them.
+- If you need fixed ports for one checkout, set explicit port values or switch `runtime.portStrategy` to `fixed`.
 
 ## Platform support
 

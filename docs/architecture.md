@@ -47,4 +47,11 @@ The repo now enforces a lightweight subset of those constraints mechanically thr
 - Watchtower event-stream handling must route payloads through the shared SSE parser.
 - Overseer source must use the structured logger path instead of direct `console` calls.
 
+## Worktree runtime model
+
+- The repo default is `runtime.portStrategy: worktree` in `panopticon.yaml`.
+- Sentinel and Watchtower derive deterministic local ports from the checkout path when explicit ports are not set.
+- Watchtower proxy targets and Overseer Sentinel URLs follow the resolved Sentinel port automatically.
+- Explicit port and URL values still override the derived defaults for specialized environments.
+
 When these constraints change, update this file in the same change.

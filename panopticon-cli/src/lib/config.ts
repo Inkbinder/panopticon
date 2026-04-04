@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import YAML from "yaml";
-import { formatConfigValidationError, panopticonConfigSchema, type PanopticonConfig } from "./config-schema";
+import { formatConfigValidationError, panopticonConfigSchema, resolvePanopticonConfig, type PanopticonConfig } from "./config-schema";
 
 let cached: { cwd: string; config: PanopticonConfig } | null = null;
 
@@ -43,7 +43,7 @@ export function readPanopticonConfig(opts?: { cwd?: string; required?: boolean }
 		throw new Error(`Invalid panopticon.yaml: ${formatConfigValidationError(parsedConfig.error)}`);
 	}
 
-	const config = parsedConfig.data;
+	const config = resolvePanopticonConfig(parsedConfig.data, cwd);
 	cached = { cwd, config };
 	return config;
 }

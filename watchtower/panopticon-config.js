@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import YAML from 'yaml';
 import { z } from 'zod';
 
 const nonEmptyString = z.string().trim().min(1);
@@ -39,7 +42,7 @@ const watchtowerConfigSchema = z
   })
   .strict();
 
-export const panopticonConfigSchema = z
+const panopticonConfigSchema = z
   .object({
     runtime: runtimeConfigSchema.optional(),
     overseer: overseerConfigSchema.optional(),
@@ -48,9 +51,13 @@ export const panopticonConfigSchema = z
   })
   .strict();
 
-export type PanopticonConfig = z.infer<typeof panopticonConfigSchema>;
+function formatConfigValidationError(error) {
+  return error.issues
+    .map((issue) => `${issue.path.length > 0 ? issue.path.join('.') : 'config'}: ${issue.message}`)
+    .join('; ');
+}
 
-function getWorktreePortOffset(cwd: string): number {
+function getWorktreePortOffset(cwd) {
   let hash = 0;
   for (const char of cwd) {
     hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
@@ -58,7 +65,7 @@ function getWorktreePortOffset(cwd: string): number {
   return 1 + (hash % 1000);
 }
 
-export function resolvePanopticonConfig(config: PanopticonConfig, cwd: string): PanopticonConfig {
+function resolvePanopticonConfig(config, cwd) {
   const useWorktreePorts = config.runtime?.portStrategy === 'worktree';
   const offset = useWorktreePorts ? getWorktreePortOffset(cwd) : 0;
   const sentinelPort = config.sentinel?.port ?? (8787 + offset);
@@ -86,8 +93,40 @@ export function resolvePanopticonConfig(config: PanopticonConfig, cwd: string): 
   };
 }
 
-export function formatConfigValidationError(error: z.ZodError): string {
-  return error.issues
-    .map((issue) => `${issue.path.length > 0 ? issue.path.join('.') : 'config'}: ${issue.message}`)
-    .join('; ');
+function findPanopticonYaml(startDir) {
+  let dir = startDir;
+  while (true) {
+    const candidate = path.join(dir, 'panopticon.yaml');
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      return null;
+    }
+    dir = parent;
+  }
+}
+
+export function readPanopticonConfig(opts = {}) {
+  const cwd = opts.cwd ?? process.cwd();
+  const filePath = findPanopticonYaml(cwd);
+  if (!filePath) {
+    return resolvePanopticonConfig({}, cwd);
+  }
+
+  const raw = fs.readFileSync(filePath, 'utf8');
+  let parsedYaml;
+  try {
+    parsedYaml = YAML.parse(raw);
+  } catch (err) {
+    throw new Error(`Failed to parse panopticon.yaml: ${String(err)}`);
+  }
+
+  const parsedConfig = panopticonConfigSchema.safeParse(parsedYaml ?? {});
+  if (!parsedConfig.success) {
+    throw new Error(`Invalid panopticon.yaml: ${formatConfigValidationError(parsedConfig.error)}`);
+  }
+
+  return resolvePanopticonConfig(parsedConfig.data, cwd);
 }

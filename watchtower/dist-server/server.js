@@ -3,37 +3,13 @@ import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import YAML from "yaml";
+import { readPanopticonConfig } from "../panopticon-config.js";
 
 // Simple static file server for the built Vite app.
 // Assumes Vite build output is in ../dist relative to this file.
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-function readPanopticonConfig() {
-	let dir = process.cwd();
-	let filePath = null;
-	while (true) {
-		const candidate = path.join(dir, "panopticon.yaml");
-		if (fs.existsSync(candidate)) {
-			filePath = candidate;
-			break;
-		}
-		const parent = path.dirname(dir);
-		if (parent === dir) break;
-		dir = parent;
-	}
-
-	if (!filePath) return {};
-	const raw = fs.readFileSync(filePath, "utf8");
-	try {
-		const parsed = YAML.parse(raw);
-		return parsed && typeof parsed === "object" ? parsed : {};
-	} catch {
-		return {};
-	}
-}
 
 const config = readPanopticonConfig();
 

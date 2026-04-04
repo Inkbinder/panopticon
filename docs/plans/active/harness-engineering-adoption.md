@@ -152,6 +152,8 @@ Implemented contract:
 
 ### PR7: Worktree-friendly local harness
 
+Status: complete.
+
 Scope:
 
 - Make multi-worktree development less collision-prone through deterministic port handling or automatic port assignment.
@@ -161,6 +163,26 @@ Acceptance criteria:
 
 - Two local copies of the repo can run without manual port edits.
 - The harness becomes safer for concurrent agent work.
+
+Implemented contract:
+
+- `runtime.portStrategy: worktree` derives stable local Sentinel and Watchtower ports from the checkout path.
+- Explicit port or URL overrides still win when a checkout needs fixed endpoints.
+- Sentinel, Overseer, CLI, Watchtower dev, and Watchtower built serving all resolve the same local port model.
+- The checked-in `panopticon.yaml` defaults to the worktree-friendly strategy.
+
+### PR8: Router warning cleanup
+
+Scope:
+
+- Remove the React Router future-flag warnings from tests and local runs.
+- Decide whether to opt into the v7 future flags now or isolate the warnings in test setup.
+- Keep route behavior stable while the warnings are addressed.
+
+Acceptance criteria:
+
+- `npm test` no longer emits the current React Router future-flag warnings.
+- The chosen approach is documented so future routing changes stay intentional.
 
 ## Risks
 
