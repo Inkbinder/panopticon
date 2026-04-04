@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { OverseerDashboardPage } from '../OverseerDashboardPage';
 import { CellDashboardPage } from '../CellDashboardPage';
 import { MockEventSource } from '../../__tests__/testUtils';
+import { routerFuture } from '../../router';
 
 let created: MockEventSource[] = [];
 
@@ -20,7 +21,7 @@ beforeEach(() => {
 describe('dashboards', () => {
   it('OverseerDashboardPage handles cell upserts and removals', async () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <OverseerDashboardPage />
       </MemoryRouter>,
     );
@@ -48,7 +49,7 @@ describe('dashboards', () => {
 
   it('CellDashboardPage title uses route param and questions list updates', async () => {
     render(
-      <MemoryRouter initialEntries={['/cells/bravo']}>
+      <MemoryRouter initialEntries={['/cells/bravo']} future={routerFuture}>
         <Routes>
           <Route path="/cells/:cellId" element={<CellDashboardPage />} />
         </Routes>

@@ -173,6 +173,8 @@ Implemented contract:
 
 ### PR8: Router warning cleanup
 
+Status: complete.
+
 Scope:
 
 - Remove the React Router future-flag warnings from tests and local runs.
@@ -183,6 +185,12 @@ Acceptance criteria:
 
 - `npm test` no longer emits the current React Router future-flag warnings.
 - The chosen approach is documented so future routing changes stay intentional.
+
+Implemented contract:
+
+- Watchtower opts into the React Router v7 future flags it already depends on.
+- Test routers use the same future-flag configuration as the runtime entrypoint.
+- Router warning cleanup is handled in app configuration rather than test-only suppression.
 
 ## Risks
 

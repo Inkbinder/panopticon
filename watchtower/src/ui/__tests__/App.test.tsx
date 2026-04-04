@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from '../App';
 import { MockEventSource } from './testUtils';
+import { routerFuture } from '../router';
 
 beforeEach(() => {
   cleanup();
@@ -20,7 +21,7 @@ beforeEach(() => {
 describe('App', () => {
   it('renders overseer route by default', () => {
     render(
-      <MemoryRouter initialEntries={['/']}>
+      <MemoryRouter initialEntries={['/']} future={routerFuture}>
         <App />
       </MemoryRouter>,
     );
@@ -34,7 +35,7 @@ describe('App', () => {
     vi.spyOn(Date.prototype, 'toLocaleTimeString').mockReturnValue('t');
 
     render(
-      <MemoryRouter initialEntries={['/cells/alpha']}>
+      <MemoryRouter initialEntries={['/cells/alpha']} future={routerFuture}>
         <App />
       </MemoryRouter>,
     );
