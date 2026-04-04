@@ -8,8 +8,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-  "start": "node dist-server/server.js",
+    "start": "node dist-server/server.js",
     "preview": "vite preview",
+    "typecheck": "tsc -b",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint ."

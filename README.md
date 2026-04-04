@@ -2,6 +2,22 @@
 
 Opinionated agentic engineering with a harness-based approach.
 
+## Overview
+
+The panopticon is an approach to agentic delivery that aims to address some of the more common questions we have as engineering professionals; questions like 'Can I trust the output?', 'What is my agent doing?' and 'What is my agent team actually even doing right now?'.
+
+This approach comes with some assumptions - the main one being that the principles of harness engineering outline by OpenAI [here](https://openai.com/index/harness-engineering/) are being adopted.
+
+What that effectively means is:
+- that *everything* is in the repository - specs, decision logs, expectations
+- that everything is validatable, observable and self-correction is possible
+- that the repository is build to be agent legible from the ground up
+
+
+## Architecture
+
+![Panopticon Architecture](./architecture.png)
+
 This repo is a small monorepo:
 
 - **sentinel**: in-memory API server used by the UI (SSE at `GET /api/events`, plus logs/questions/cell endpoints).
@@ -9,6 +25,14 @@ This repo is a small monorepo:
 - **overseer**: a local process that emits structured logs (to file + console + Sentinel).
 - **panopticon-cli**: the CLI that runs diagnostics and starts/stops the local stack.
 - **panopticon**: a thin published wrapper that exposes the `panopticon` binary (it just loads `panopticon-cli`).
+
+## Repository guidance
+
+- Agent/contributor map: [AGENTS.md](AGENTS.md)
+- Documentation index: [docs/index.md](docs/index.md)
+- Architecture notes: [docs/architecture.md](docs/architecture.md)
+- Quality expectations: [docs/quality.md](docs/quality.md)
+- Active rollout plan: [docs/plans/active/harness-engineering-adoption.md](docs/plans/active/harness-engineering-adoption.md)
 
 ## Requirements
 
@@ -69,6 +93,12 @@ Run tests:
 
 ```bash
 npm test
+```
+
+Run the default validation contract for a change:
+
+```bash
+npm run check
 ```
 
 ## Platform support

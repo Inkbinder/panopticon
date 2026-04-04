@@ -6,6 +6,9 @@
   "bin": {
     "panopticon": "bin/panopticon.js"
   },
+  "scripts": {
+    "lint": "eslint bin --ext .js"
+  },
   "files": [
     "bin"
   ],

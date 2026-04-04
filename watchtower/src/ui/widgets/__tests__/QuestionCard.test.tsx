@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { QuestionCard } from '../QuestionCard';
 import type { Question } from '../../types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const globalThis: any;
 
 describe('QuestionCard', () => {

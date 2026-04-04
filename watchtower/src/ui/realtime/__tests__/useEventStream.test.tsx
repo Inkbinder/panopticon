@@ -3,7 +3,6 @@ import { render } from '@testing-library/react';
 import { useEventStream } from '../useEventStream';
 import { MockEventSource } from '../../__tests__/testUtils';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const globalThis: any;
 
 describe('useEventStream', () => {

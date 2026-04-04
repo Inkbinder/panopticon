@@ -3,7 +3,6 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from '../App';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const globalThis: any;
 
 beforeEach(() => {

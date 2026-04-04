@@ -36,17 +36,26 @@
   "scripts": {
     "dev": "concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
     "dev:demo": "cross-env DEMO_SIM=1 concurrently -n sentinel,ui -c magenta,cyan \"npm -w sentinel run dev\" \"npm -w watchtower run dev\"",
-  "build:packages": "npm -w overseer run build && npm -w panopticon-cli run build",
-  "build:web": "npm -w sentinel run build && npm -w watchtower run build",
-  "build": "npm run build:packages && npm run build:web",
-  "test:packages": "npm -w overseer test && npm -w panopticon-cli test",
-  "test:web": "npm -w sentinel test && npm -w watchtower test",
-  "test": "npm run test:packages && npm run test:web",
-  "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
+    "build:packages": "npm -w overseer run build && npm -w panopticon-cli run build",
+    "build:web": "npm -w sentinel run build && npm -w watchtower run build",
+    "build": "npm run build:packages && npm run build:web",
+    "typecheck": "npm --workspaces --if-present run typecheck",
+    "lint": "npm --workspaces --if-present run lint",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "test:packages": "npm -w overseer test && npm -w panopticon-cli test",
+    "test:web": "npm -w sentinel test && npm -w watchtower test",
+    "test": "npm run test:packages && npm run test:web",
+    "test:coverage": "npm -w sentinel run test:coverage && npm -w watchtower run test:coverage"
   },
   "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
+    "eslint": "^9.24.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
     "tsup": "^8.5.0"
   }
 }

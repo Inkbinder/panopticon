@@ -5,7 +5,6 @@ import { OverseerDashboardPage } from '../OverseerDashboardPage';
 import { CellDashboardPage } from '../CellDashboardPage';
 import { MockEventSource } from '../../__tests__/testUtils';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const globalThis: any;
 
 let created: MockEventSource[] = [];
