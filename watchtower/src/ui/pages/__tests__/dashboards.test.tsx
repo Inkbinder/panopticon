@@ -1,22 +1,20 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { OverseerDashboardPage } from '../OverseerDashboardPage';
 import { CellDashboardPage } from '../CellDashboardPage';
 import { MockEventSource } from '../../__tests__/testUtils';
 
-declare const globalThis: any;
-
 let created: MockEventSource[] = [];
 
 beforeEach(() => {
   cleanup();
   created = [];
-  globalThis.EventSource = function (url: string) {
+  vi.stubGlobal('EventSource', function (url: string) {
     const es = new MockEventSource(url);
     created.push(es);
     return es;
-  };
+  });
 });
 
 describe('dashboards', () => {

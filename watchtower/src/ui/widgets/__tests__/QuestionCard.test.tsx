@@ -4,8 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { QuestionCard } from '../QuestionCard';
 import type { Question } from '../../types';
 
-declare const globalThis: any;
-
 describe('QuestionCard', () => {
   beforeEach(() => {
     cleanup();
@@ -43,7 +41,8 @@ describe('QuestionCard', () => {
 
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn(async () => ({ ok: true, status: 204, text: async () => '' }));
+    const fetchMock = vi.fn(async () => ({ ok: true, status: 204, text: async () => '' }));
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
 
     render(<QuestionCard question={q} />);
 
@@ -57,7 +56,7 @@ describe('QuestionCard', () => {
 
     await user.click(btn);
 
-    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(input.value).toBe('');
   });
 
@@ -73,7 +72,8 @@ describe('QuestionCard', () => {
 
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn(async () => ({ ok: false, status: 500, text: async () => 'nope' }));
+    const fetchMock = vi.fn(async () => ({ ok: false, status: 500, text: async () => 'nope' }));
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch);
 
     render(<QuestionCard question={q} />);
 
@@ -85,7 +85,7 @@ describe('QuestionCard', () => {
     // click should not crash the test; component doesn't display error but it must stop busy state
     await user.click(btn);
 
-    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     // input should remain (since request failed)
     expect(input.value).toBe('ok');
   });

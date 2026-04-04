@@ -120,6 +120,18 @@ export class InMemoryStore {
   }
 
   touchAgentState(cellId: string, role: Exclude<AgentRole, 'overseer'>, state: AgentState) {
-    this.upsertCell(cellId, { [role]: { role, state, lastSeenAt: Date.now() } } as any);
+    const agentSummary = { role, state, lastSeenAt: Date.now() };
+
+    switch (role) {
+      case 'guard':
+        this.upsertCell(cellId, { guard: agentSummary });
+        break;
+      case 'resident':
+        this.upsertCell(cellId, { resident: agentSummary });
+        break;
+      case 'janitor':
+        this.upsertCell(cellId, { janitor: agentSummary });
+        break;
+    }
   }
 }

@@ -1,7 +1,25 @@
 import { describe, expect, it } from 'vitest';
+import type { Request } from 'express';
 import request from 'supertest';
 import { createApp } from '../index';
 import { makeFilter } from '../routes/events';
+import type { CellSummary, SseEnvelope } from '../events/types';
+
+function buildRequestWithQuery(query: Record<string, string>): Request {
+  return { query } as unknown as Request;
+}
+
+function makeCellUpsert(cellId: string): Extract<SseEnvelope, { type: 'cell.upsert' }> {
+  const cell: CellSummary = {
+    cellId,
+    lastSeenAt: 1,
+    guard: { role: 'guard', state: 'running', lastSeenAt: 1 },
+    resident: { role: 'resident', state: 'idle', lastSeenAt: 1 },
+    janitor: { role: 'janitor', state: 'idle', lastSeenAt: 1 },
+  };
+
+  return { type: 'cell.upsert', data: cell };
+}
 
 describe('sentinel routes', () => {
   it('GET /api/health returns ok', async () => {
@@ -65,11 +83,11 @@ describe('sentinel routes', () => {
   it('POST /api/logs validates body and publishes log event', async () => {
     const { app, bus } = createApp();
 
-    const published: any[] = [];
+    const published: SseEnvelope[] = [];
     bus.subscribe({
       id: 't',
       filter: () => true,
-      send: (m: any) => published.push(m),
+      send: (message) => published.push(message),
       close: () => {},
     });
 
@@ -102,39 +120,39 @@ describe('sentinel routes', () => {
   });
 
   it('events filter includes only matching cell-scoped messages', () => {
-    const filter = makeFilter({ query: { scope: 'cell', cellId: 'alpha' } } as any);
+    const filter = makeFilter(buildRequestWithQuery({ scope: 'cell', cellId: 'alpha' }));
 
-    expect(filter({ type: 'cell.upsert', data: { cellId: 'alpha' } } as any)).toBe(true);
-    expect(filter({ type: 'cell.upsert', data: { cellId: 'bravo' } } as any)).toBe(false);
-    expect(filter({ type: 'cell.remove', data: { cellId: 'alpha' } } as any)).toBe(true);
-    expect(filter({ type: 'cell.remove', data: { cellId: 'bravo' } } as any)).toBe(false);
+    expect(filter(makeCellUpsert('alpha'))).toBe(true);
+    expect(filter(makeCellUpsert('bravo'))).toBe(false);
+    expect(filter({ type: 'cell.remove', data: { cellId: 'alpha' } })).toBe(true);
+    expect(filter({ type: 'cell.remove', data: { cellId: 'bravo' } })).toBe(false);
     expect(
-      filter({ type: 'log', data: { scope: 'cell', cellId: 'alpha', agent: 'guard', message: 'x', id: '1', ts: 1 } } as any),
+      filter({ type: 'log', data: { scope: 'cell', cellId: 'alpha', agent: 'guard', message: 'x', id: '1', ts: 1 } }),
     ).toBe(true);
     expect(
-      filter({ type: 'log', data: { scope: 'overseer', agent: 'overseer', message: 'x', id: '1', ts: 1 } } as any),
+      filter({ type: 'log', data: { scope: 'overseer', agent: 'overseer', message: 'x', id: '1', ts: 1 } }),
     ).toBe(false);
     expect(
-      filter({ type: 'question.upsert', data: { scope: 'cell', cellId: 'alpha', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } } as any),
+      filter({ type: 'question.upsert', data: { scope: 'cell', cellId: 'alpha', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } }),
     ).toBe(true);
     expect(
-      filter({ type: 'question.upsert', data: { scope: 'cell', cellId: 'bravo', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } } as any),
+      filter({ type: 'question.upsert', data: { scope: 'cell', cellId: 'bravo', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } }),
     ).toBe(false);
 
     // Unknown message type should be rejected for cell scope
-    expect(filter({ type: 'log', data: { scope: 'cell', cellId: 'bravo', agent: 'guard', message: 'x', id: '1', ts: 1 } } as any)).toBe(
+    expect(filter({ type: 'log', data: { scope: 'cell', cellId: 'bravo', agent: 'guard', message: 'x', id: '1', ts: 1 } })).toBe(
       false,
     );
   });
 
   it('events filter allows all messages for overseer scope and rejects unknown scope', () => {
-    const overseer = makeFilter({ query: { scope: 'overseer' } } as any);
-    expect(overseer({ type: 'cell.remove', data: { cellId: 'x' } } as any)).toBe(true);
+    const overseer = makeFilter(buildRequestWithQuery({ scope: 'overseer' }));
+    expect(overseer({ type: 'cell.remove', data: { cellId: 'x' } })).toBe(true);
     expect(
-      overseer({ type: 'question.upsert', data: { scope: 'cell', cellId: 'x', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } } as any),
+      overseer({ type: 'question.upsert', data: { scope: 'cell', cellId: 'x', fromAgent: 'guard', prompt: 'p', status: 'open', id: 'q', createdAt: 1 } }),
     ).toBe(true);
 
-    const unknown = makeFilter({ query: { scope: 'weird', cellId: 'x' } } as any);
-    expect(unknown({ type: 'cell.remove', data: { cellId: 'x' } } as any)).toBe(false);
+    const unknown = makeFilter(buildRequestWithQuery({ scope: 'weird', cellId: 'x' }));
+    expect(unknown({ type: 'cell.remove', data: { cellId: 'x' } })).toBe(false);
   });
 });

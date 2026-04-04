@@ -17,13 +17,13 @@ Today, the repo can usually validate a change with some subset of:
 
 ## Current lint baseline
 
-The current lint baseline is intentionally conservative:
+The current lint baseline is stricter than the original PR2 floor:
 
 - Shared ESLint configuration runs across the workspaces.
 - React hook and refresh rules are enforced in `watchtower`.
-- The repo does not yet fail lint on `@typescript-eslint/no-explicit-any`.
+- The repo now fails lint on `@typescript-eslint/no-explicit-any`.
 
-That last point is temporary. PR2 established a runnable floor for the whole monorepo; PR6 is where the baseline should become meaningfully stricter.
+PR6 is still not complete. The `no-explicit-any` step is now enforced; the remaining work is structural and remediation-oriented checks that encode package boundaries and repo-specific invariants.
 
 ## Gaps to close
 
@@ -45,7 +45,7 @@ These are the first invariants to encode mechanically:
 
 PR6 should tighten the lint contract in small, explicit steps:
 
-1. Re-enable `@typescript-eslint/no-explicit-any` after the current usages are removed or isolated behind deliberate escapes.
+1. Re-enable `@typescript-eslint/no-explicit-any` after the current usages are removed or isolated behind deliberate escapes. Completed.
 2. Fail on unused lint suppression comments so bypasses cannot accumulate silently.
 3. Add repo-specific rules for structural constraints once package boundaries are documented precisely.
 4. Write remediation-oriented error messages so failures tell agents and contributors how to fix the issue.

@@ -2,15 +2,19 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from '../App';
-
-declare const globalThis: any;
+import { MockEventSource } from './testUtils';
 
 beforeEach(() => {
   cleanup();
   // Minimal EventSource stub so pages using useEventStream don't explode.
-  globalThis.EventSource = function () {
-    return { addEventListener: () => {}, close: () => {} };
-  };
+  vi.stubGlobal(
+    'EventSource',
+    class extends MockEventSource {
+      constructor() {
+        super('/');
+      }
+    },
+  );
 });
 
 describe('App', () => {

@@ -1,12 +1,13 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import type { MockInstance } from "vitest";
+import type { MockedFunction } from "vitest";
+import type { superviseAll as superviseAllFn } from "../lib/process-manager";
 
-let superviseAll: MockInstance;
+let superviseAll: MockedFunction<typeof superviseAllFn>;
 
 vi.mock("../lib/process-manager", async () => {
 	return {
-		superviseAll: (...args: any[]) => (superviseAll as any)(...args),
+		superviseAll: (...args: Parameters<typeof superviseAllFn>) => superviseAll(...args),
 	};
 });
 

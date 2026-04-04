@@ -1,5 +1,18 @@
 import Transport from 'winston-transport';
 
+type LogInfo = {
+  message?: unknown;
+  level?: unknown;
+} & Record<string, unknown>;
+
+type LogRequestBody = {
+  scope: 'overseer' | 'cell';
+  agent: 'overseer' | 'guard' | 'resident' | 'janitor';
+  message: string;
+  level?: string;
+  cellId?: string;
+};
+
 export type SentinelTransportOpts = {
   endpoint: string;
   scope: 'overseer' | 'cell';
@@ -17,7 +30,7 @@ export class SentinelTransport extends Transport {
   private timeoutMs: number;
   private maxQueue: number;
 
-  private queue: any[] = [];
+  private queue: LogInfo[] = [];
   private flushing = false;
 
   constructor(opts: SentinelTransportOpts) {
@@ -32,11 +45,15 @@ export class SentinelTransport extends Transport {
 
   // Winston calls this for each log entry.
   // We must not block the app; send best-effort in background.
-  log(info: any, callback: () => void) {
+  log(info: unknown, callback: () => void) {
     setImmediate(callback);
 
+    if (!info || typeof info !== 'object') {
+      return;
+    }
+
     // Clone to avoid later mutation by winston formats.
-    const snapshot = { ...info };
+    const snapshot: LogInfo = { ...(info as Record<string, unknown>) };
 
     if (this.queue.length >= this.maxQueue) {
       // Drop oldest to avoid unbounded memory growth.
@@ -54,6 +71,10 @@ export class SentinelTransport extends Transport {
     try {
       while (this.queue.length > 0) {
         const next = this.queue.shift();
+        if (!next) {
+          continue;
+        }
+
         try {
           await this.sendOne(next);
         } catch {
@@ -65,7 +86,7 @@ export class SentinelTransport extends Transport {
     }
   }
 
-  private async sendOne(info: any): Promise<void> {
+  private async sendOne(info: LogInfo): Promise<void> {
     const message =
       typeof info?.message === 'string'
         ? info.message
@@ -77,7 +98,7 @@ export class SentinelTransport extends Transport {
 
     const level = typeof info?.level === 'string' ? info.level : undefined;
 
-    const body: any = {
+    const body: LogRequestBody = {
       scope: this.scope,
       agent: this.agent,
       message,
@@ -89,7 +110,7 @@ export class SentinelTransport extends Transport {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     // Don't keep the process alive just for logging.
-    (timeout as any).unref?.();
+  timeout.unref?.();
 
     try {
       const res = await fetch(this.endpoint, {

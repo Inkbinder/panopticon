@@ -1,17 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryEventBus } from '../events/bus';
 import { InMemoryStore } from '../state/store';
+import type { CellSummary, SseEnvelope } from '../events/types';
 
 describe('InMemoryStore', () => {
   it('publishes question.upsert on create and answer', () => {
     const bus = new InMemoryEventBus();
     const store = new InMemoryStore(bus);
 
-    const published: any[] = [];
+    const published: SseEnvelope[] = [];
     bus.subscribe({
       id: 't',
       filter: () => true,
-  send: (m: any) => published.push(m),
+      send: (message) => published.push(message),
       close: () => {},
     });
 
@@ -46,29 +47,29 @@ describe('InMemoryStore', () => {
     store.createQuestion({ scope: 'cell', cellId: 'alpha', fromAgent: 'guard', prompt: 'q1' });
     store.createQuestion({ scope: 'cell', cellId: 'bravo', fromAgent: 'guard', prompt: 'q2' });
 
-  const onlyAlpha = store.snapshotForSubscriber((m: any) => {
-      if (m.type === 'cell.upsert') return m.data.cellId === 'alpha';
-      if (m.type === 'question.upsert') return m.data.cellId === 'alpha';
+    const onlyAlpha = store.snapshotForSubscriber((message) => {
+      if (message.type === 'cell.upsert') return message.data.cellId === 'alpha';
+      if (message.type === 'question.upsert') return message.data.cellId === 'alpha';
       return false;
     });
-  expect(onlyAlpha.some((e: any) => e.type === 'cell.upsert' && e.data.cellId === 'alpha')).toBe(true);
-  expect(onlyAlpha.some((e: any) => e.type === 'cell.upsert' && e.data.cellId === 'bravo')).toBe(false);
-  expect(onlyAlpha.some((e: any) => e.type === 'question.upsert' && e.data.cellId === 'alpha')).toBe(true);
-  expect(onlyAlpha.some((e: any) => e.type === 'question.upsert' && e.data.cellId === 'bravo')).toBe(false);
+    expect(onlyAlpha.some((event) => event.type === 'cell.upsert' && event.data.cellId === 'alpha')).toBe(true);
+    expect(onlyAlpha.some((event) => event.type === 'cell.upsert' && event.data.cellId === 'bravo')).toBe(false);
+    expect(onlyAlpha.some((event) => event.type === 'question.upsert' && event.data.cellId === 'alpha')).toBe(true);
+    expect(onlyAlpha.some((event) => event.type === 'question.upsert' && event.data.cellId === 'bravo')).toBe(false);
 
     store.removeCell('alpha');
-  expect(store.listCells().some((c: any) => c.cellId === 'alpha')).toBe(false);
+    expect(store.listCells().some((cell: CellSummary) => cell.cellId === 'alpha')).toBe(false);
   });
 
   it('appendLog and touchAgentState publish events', () => {
     const bus = new InMemoryEventBus();
     const store = new InMemoryStore(bus);
 
-    const published: any[] = [];
+    const published: SseEnvelope[] = [];
     bus.subscribe({
       id: 't',
       filter: () => true,
-  send: (m: any) => published.push(m),
+      send: (message) => published.push(message),
       close: () => {},
     });
 

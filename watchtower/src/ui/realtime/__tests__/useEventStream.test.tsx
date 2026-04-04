@@ -3,17 +3,15 @@ import { render } from '@testing-library/react';
 import { useEventStream } from '../useEventStream';
 import { MockEventSource } from '../../__tests__/testUtils';
 
-declare const globalThis: any;
-
 describe('useEventStream', () => {
   it('routes messages to handlers and closes on unmount', () => {
     const created: MockEventSource[] = [];
 
-    globalThis.EventSource = function (url: string) {
+    vi.stubGlobal('EventSource', function (url: string) {
       const es = new MockEventSource(url);
       created.push(es);
       return es;
-    };
+    });
 
     const onLog = vi.fn();
     const onCellUpsert = vi.fn();
@@ -58,7 +56,7 @@ describe('useEventStream', () => {
 
   it('does nothing when url is empty', () => {
     const spy = vi.fn();
-    globalThis.EventSource = spy;
+    vi.stubGlobal('EventSource', spy);
 
     function Harness() {
       useEventStream('', {});
@@ -72,11 +70,11 @@ describe('useEventStream', () => {
   it('ignores invalid SSE envelopes', () => {
     const created: MockEventSource[] = [];
 
-    globalThis.EventSource = function (url: string) {
+    vi.stubGlobal('EventSource', function (url: string) {
       const es = new MockEventSource(url);
       created.push(es);
       return es;
-    };
+    });
 
     const onLog = vi.fn();
 

@@ -126,6 +126,8 @@ Implemented contract:
 
 ### PR6: Architecture and taste invariants
 
+Status: in progress.
+
 Scope:
 
 - Add lightweight structural checks for package boundaries.
@@ -138,6 +140,11 @@ Acceptance criteria:
 - Important constraints are enforced mechanically.
 - Review comments about the same recurring problems become less common.
 - The lint contract catches more architectural and typing drift than the PR2 baseline.
+
+Progress so far:
+
+- Repo-wide `@typescript-eslint/no-explicit-any` is re-enabled and the current usages have been removed.
+- Remaining PR6 work is structural enforcement and remediation-oriented rule design.
 
 ### PR7: Worktree-friendly local harness
 
