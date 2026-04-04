@@ -68,4 +68,26 @@ describe('useEventStream', () => {
     render(<Harness />);
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it('ignores invalid SSE envelopes', () => {
+    const created: MockEventSource[] = [];
+
+    globalThis.EventSource = function (url: string) {
+      const es = new MockEventSource(url);
+      created.push(es);
+      return es;
+    };
+
+    const onLog = vi.fn();
+
+    function Harness() {
+      useEventStream('/api/events?scope=overseer', { onLog });
+      return <div>ok</div>;
+    }
+
+    render(<Harness />);
+
+    created[0].emit('message', { type: 'log', data: { scope: 'overseer', message: 123 } });
+    expect(onLog).not.toHaveBeenCalled();
+  });
 });

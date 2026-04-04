@@ -5,12 +5,15 @@
 Today, the repo can usually validate a change with some subset of:
 
 - `npm run check`
+- `npm run smoke`
 - `npm run build`
 - `npm test`
 - package-level `typecheck`
 - package-level `lint`
 
-`npm run check` is now the default local validation contract. It currently runs lint, typecheck, and tests across the workspaces.
+`npm run check` is now the default local validation contract. It runs lint, typecheck, tests, and the built harness smoke test across the workspaces.
+
+`npm run smoke` is the focused runtime contract for the harness itself. It builds the repo, starts the supervised stack on temporary ports, verifies health through Watchtower's proxy, performs a representative write, confirms the result through SSE, and checks that shutdown is clean.
 
 ## Current lint baseline
 

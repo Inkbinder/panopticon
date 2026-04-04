@@ -1,29 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import YAML from "yaml";
-
-export type PanopticonConfig = {
-
-overseer?: {
-		logDir?: string;
-		logLevel?: string;
-		consoleLogLevel?: string;
-		fileLogLevel?: string;
-		sentinelUrl?: string;
-		apiBaseUrl?: string;
-		sentinelLogTimeoutMs?: number;
-		sentinelLogMaxQueue?: number;
-	};
-	sentinel?: {
-		port?: number;
-		demoSim?: boolean;
-	};
-	watchtower?: {
-		port?: number;
-		host?: string;
-		apiBaseUrl?: string;
-	};
-};
+import { formatConfigValidationError, panopticonConfigSchema, type PanopticonConfig } from "./config-schema";
 
 let cached: { cwd: string; config: PanopticonConfig } | null = null;
 
@@ -53,14 +31,19 @@ export function readPanopticonConfig(opts?: { cwd?: string; required?: boolean }
 	}
 
 	const raw = fs.readFileSync(filePath, "utf8");
-	let parsed: unknown;
+	let parsedYaml: unknown;
 	try {
-		parsed = YAML.parse(raw);
+		parsedYaml = YAML.parse(raw);
 	} catch (err) {
 		throw new Error(`Failed to parse panopticon.yaml: ${String(err)}`);
 	}
 
-	const config = (parsed && typeof parsed === "object" ? (parsed as PanopticonConfig) : {}) as PanopticonConfig;
+	const parsedConfig = panopticonConfigSchema.safeParse(parsedYaml ?? {});
+	if (!parsedConfig.success) {
+		throw new Error(`Invalid panopticon.yaml: ${formatConfigValidationError(parsedConfig.error)}`);
+	}
+
+	const config = parsedConfig.data;
 	cached = { cwd, config };
 	return config;
 }

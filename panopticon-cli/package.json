@@ -8,6 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "build": "tsup",
+    "smoke": "tsx src/smoke.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "test": "vitest run",
@@ -16,7 +17,8 @@
   "dependencies": {
     "commander": "^13.0.0",
     "cross-spawn": "^7.0.6",
-    "yaml": "^2.7.0"
+		"yaml": "^2.7.0",
+		"zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",

@@ -101,6 +101,14 @@ Run the default validation contract for a change:
 npm run check
 ```
 
+Run the built harness smoke test directly:
+
+```bash
+npm run smoke
+```
+
+`npm run smoke` builds the workspaces, starts the supervised local stack on isolated ports, verifies health through Watchtower's `/api` proxy, performs a representative API write, observes the result through SSE, and confirms clean shutdown.
+
 ## Platform support
 
 This repository supports **Linux/macOS/WSL2** environments for running the local supervisor and managed processes.

@@ -17,6 +17,9 @@ describe('sentinel routes', () => {
     const bad = await request(app).post('/api/questions').send({});
     expect(bad.status).toBe(400);
 
+    const badAgent = await request(app).post('/api/questions').send({ scope: 'overseer', fromAgent: 'robot', prompt: 'hello' });
+    expect(badAgent.status).toBe(400);
+
     const created = await request(app)
       .post('/api/questions')
       .send({ scope: 'cell', fromAgent: 'guard', prompt: 'hello', cellId: 'alpha' });
@@ -46,6 +49,12 @@ describe('sentinel routes', () => {
     const missingState = await request(app).post('/api/cells/c1/agents/guard/state').send({});
     expect(missingState.status).toBe(400);
 
+    const invalidRole = await request(app).post('/api/cells/c1/agents/nope/state').send({ state: 'running' });
+    expect(invalidRole.status).toBe(400);
+
+    const invalidState = await request(app).post('/api/cells/c1/agents/guard/state').send({ state: 'broken' });
+    expect(invalidState.status).toBe(400);
+
     const setState = await request(app).post('/api/cells/c1/agents/guard/state').send({ state: 'running' });
     expect(setState.status).toBe(204);
 
@@ -69,6 +78,12 @@ describe('sentinel routes', () => {
 
     const badScope = await request(app).post('/api/logs').send({ scope: 'nope', agent: 'overseer', message: 'x' });
     expect(badScope.status).toBe(400);
+
+    const badAgent = await request(app).post('/api/logs').send({ scope: 'overseer', agent: 'robot', message: 'x' });
+    expect(badAgent.status).toBe(400);
+
+    const badLevel = await request(app).post('/api/logs').send({ scope: 'overseer', agent: 'overseer', message: 'x', level: 'trace' });
+    expect(badLevel.status).toBe(400);
 
     const missingCellId = await request(app)
       .post('/api/logs')

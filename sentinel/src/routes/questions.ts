@@ -1,34 +1,29 @@
 import type { Request, Response } from 'express';
 import type { InMemoryStore } from '../state/store';
+import { questionAnswerBodySchema, questionCreateBodySchema, sendValidationError } from '../validation';
 
 export function createQuestionsRoutes(store: InMemoryStore) {
   return {
     create: (req: Request, res: Response) => {
-      const body = req.body as any;
-      const scope = body?.scope as 'overseer' | 'cell';
-      const fromAgent = body?.fromAgent as any;
-      const prompt = body?.prompt as string;
-      const cellId = body?.cellId as string | undefined;
-
-      if (!scope || !fromAgent || !prompt) {
-        res.status(400).send('Missing scope/fromAgent/prompt');
+      const parsedBody = questionCreateBodySchema.safeParse(req.body);
+      if (!parsedBody.success) {
+        sendValidationError(res, parsedBody.error);
         return;
       }
 
-      const q = store.createQuestion({ scope, fromAgent, prompt, cellId });
+      const q = store.createQuestion(parsedBody.data);
       res.status(201).json(q);
     },
 
     answer: (req: Request, res: Response) => {
       const id = req.params.id;
-      const body = req.body as any;
-      const answer = body?.answer as string;
-      if (!answer || answer.trim().length === 0) {
-        res.status(400).send('Missing answer');
+      const parsedBody = questionAnswerBodySchema.safeParse(req.body);
+      if (!parsedBody.success) {
+        sendValidationError(res, parsedBody.error);
         return;
       }
 
-      const q = store.answerQuestion(id, answer.trim());
+      const q = store.answerQuestion(id, parsedBody.data.answer);
       if (!q) {
         res.status(404).send('Question not found');
         return;

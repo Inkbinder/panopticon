@@ -44,4 +44,18 @@ describe("doctor", () => {
       process.chdir(prev);
     }
   });
+
+  it("fails when panopticon.yaml has invalid values", async () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "panopticon-doctor-"));
+    fs.writeFileSync(path.join(tmp, "panopticon.yaml"), "sentinel:\n  port: nope\n", "utf8");
+    const prev = process.cwd();
+    process.chdir(tmp);
+    try {
+      const { runDoctorChecks } = await import("../commands/doctor");
+      const results = runDoctorChecks({ platform: "linux" });
+      expect(results.find((r) => r.id === "config")?.ok).toBe(false);
+    } finally {
+      process.chdir(prev);
+    }
+  });
 });

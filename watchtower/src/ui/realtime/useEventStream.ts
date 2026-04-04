@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import type { CellSummary, LogEvent, Question, SseEnvelope } from '../types.ts';
+import type { CellSummary, LogEvent, Question } from '../types.ts';
+import { parseSseEnvelope } from './sse';
 
 type Handlers = {
   onLog?: (e: LogEvent) => void;
@@ -21,7 +22,11 @@ export function useEventStream(url: string, handlers: Handlers) {
   const es = new EventSource(fullUrl);
 
     const onMessage = (ev: MessageEvent<string>) => {
-      const parsed: SseEnvelope = JSON.parse(ev.data);
+      const parsed = parseSseEnvelope(ev.data);
+      if (!parsed) {
+        return;
+      }
+
       switch (parsed.type) {
         case 'log':
           handlersRef.current.onLog?.(parsed.data as LogEvent);
@@ -30,7 +35,7 @@ export function useEventStream(url: string, handlers: Handlers) {
           handlersRef.current.onCellUpsert?.(parsed.data as CellSummary);
           break;
         case 'cell.remove':
-          handlersRef.current.onCellRemove?.((parsed.data as { cellId: string }).cellId);
+          handlersRef.current.onCellRemove?.(parsed.data.cellId);
           break;
         case 'question.upsert':
           handlersRef.current.onQuestionUpsert?.(parsed.data as Question);

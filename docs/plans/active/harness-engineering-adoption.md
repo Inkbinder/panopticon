@@ -87,6 +87,8 @@ Implemented contract:
 
 ### PR4: Boundary validation
 
+Status: complete.
+
 Scope:
 
 - Introduce a shared boundary-validation approach for config and HTTP/event payloads.
@@ -97,7 +99,15 @@ Acceptance criteria:
 - Invalid external input fails early and consistently.
 - Route and config behavior becomes easier to test.
 
+Implemented contract:
+
+- Config loading in `sentinel`, `overseer`, and `panopticon-cli` validates `panopticon.yaml` before use.
+- Sentinel route params and request bodies are schema-checked at the boundary.
+- Watchtower ignores malformed SSE envelopes instead of trusting raw event payloads.
+
 ### PR5: Harness smoke tests
+
+Status: complete.
 
 Scope:
 
@@ -108,6 +118,11 @@ Acceptance criteria:
 
 - The core loop can be validated automatically, not only manually.
 - Failures indicate where the runtime loop is broken.
+
+Implemented contract:
+
+- `npm run smoke` builds the repo and starts the supervised local stack on isolated temporary ports.
+- The smoke test verifies Watchtower startup, Sentinel health through the `/api` proxy, a representative question write, SSE visibility of that write, Overseer runtime output, and clean supervisor shutdown.
 
 ### PR6: Architecture and taste invariants
 
