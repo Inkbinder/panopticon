@@ -75,6 +75,112 @@ function extractSpecifiers(contents) {
   return specifiers;
 }
 
+function resolveImportTarget(filePath, specifier) {
+  if (!specifier.startsWith('.')) {
+    return null;
+  }
+
+  const base = path.resolve(path.dirname(filePath), specifier);
+  const candidates = [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    `${base}.js`,
+    `${base}.jsx`,
+    path.join(base, 'index.ts'),
+    path.join(base, 'index.tsx'),
+    path.join(base, 'index.js'),
+    path.join(base, 'index.jsx'),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function isInDir(filePath, dirPath) {
+  return filePath === dirPath || filePath.startsWith(`${dirPath}${path.sep}`);
+}
+
+function checkInternalLayering(filePath, contents) {
+  const workspace = findWorkspaceForFile(filePath);
+  if (!workspace) return;
+
+  // PR10: internal layering rules (minimal, remediation-oriented).
+  // Sentinel layering: events (lowest) <- state <- routes/demo (highest).
+  if (workspace.name === 'sentinel') {
+    const eventsDir = path.join(workspace.root, 'src', 'events');
+    const stateDir = path.join(workspace.root, 'src', 'state');
+    const routesDir = path.join(workspace.root, 'src', 'routes');
+    const demoDir = path.join(workspace.root, 'src', 'demo');
+
+    const inEvents = isInDir(filePath, eventsDir);
+    const inState = isInDir(filePath, stateDir);
+
+    for (const { specifier, index } of extractSpecifiers(contents)) {
+      if (!specifier?.startsWith('.')) continue;
+      const resolved = resolveImportTarget(filePath, specifier);
+      if (!resolved) continue;
+
+      if (inEvents && (isInDir(resolved, stateDir) || isInDir(resolved, routesDir) || isInDir(resolved, demoDir))) {
+        addViolation(
+          filePath,
+          `Sentinel events layer must not import higher layers (${relativePath(resolved)}).`,
+          'Move shared types/utilities down into sentinel/src/events or a small leaf module; keep routes/state/demo depending on events, not the reverse.',
+          lineNumberForIndex(contents, index),
+        );
+      }
+
+      if (inState && (isInDir(resolved, routesDir) || isInDir(resolved, demoDir))) {
+        addViolation(
+          filePath,
+          `Sentinel state layer must not import higher layers (${relativePath(resolved)}).`,
+          'Move boundary wiring into sentinel/src/routes (or demo), and keep sentinel/src/state focused on in-memory domain behavior + event publication.',
+          lineNumberForIndex(contents, index),
+        );
+      }
+    }
+  }
+
+  // Watchtower layering: realtime/types (lower) <- widgets <- pages/app (higher).
+  if (workspace.name === 'watchtower') {
+    const realtimeDir = path.join(workspace.root, 'src', 'ui', 'realtime');
+    const widgetsDir = path.join(workspace.root, 'src', 'ui', 'widgets');
+    const pagesDir = path.join(workspace.root, 'src', 'ui', 'pages');
+
+    const inRealtime = isInDir(filePath, realtimeDir);
+    const inWidgets = isInDir(filePath, widgetsDir);
+
+    for (const { specifier, index } of extractSpecifiers(contents)) {
+      if (!specifier?.startsWith('.')) continue;
+      const resolved = resolveImportTarget(filePath, specifier);
+      if (!resolved) continue;
+
+      if (inRealtime && (isInDir(resolved, widgetsDir) || isInDir(resolved, pagesDir))) {
+        addViolation(
+          filePath,
+          `Watchtower realtime layer must not import UI composition layers (${relativePath(resolved)}).`,
+          'Keep watchtower/src/ui/realtime focused on SSE transport + state hooks; move UI composition into widgets/pages instead of importing them into realtime.',
+          lineNumberForIndex(contents, index),
+        );
+      }
+
+      if (inWidgets && isInDir(resolved, pagesDir)) {
+        addViolation(
+          filePath,
+          `Watchtower widgets layer must not import pages (${relativePath(resolved)}).`,
+          'Move shared view logic into widgets or ui/types; pages may compose widgets, but widgets should stay reusable and not depend on routing/page composition.',
+          lineNumberForIndex(contents, index),
+        );
+      }
+    }
+  }
+}
+
 function checkRelativeImportBoundaries(filePath, contents) {
   const workspace = findWorkspaceForFile(filePath);
   if (!workspace) {
@@ -199,6 +305,7 @@ for (const root of sourceRoots) {
   for (const filePath of walkFiles(root)) {
     const contents = fs.readFileSync(filePath, 'utf8');
     checkRelativeImportBoundaries(filePath, contents);
+    checkInternalLayering(filePath, contents);
   }
 }
 

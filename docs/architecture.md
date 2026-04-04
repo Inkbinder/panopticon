@@ -37,6 +37,17 @@ Panopticon is a small Node/TypeScript monorepo with five workspaces:
 - Parse and validate external data at boundaries.
 - Prefer deterministic startup and teardown paths that can be run in CI.
 
+## Internal workspace layering (PR10)
+
+Some key internal dependency directions are now enforced mechanically by `npm run invariants`.
+
+- `sentinel` layering (low → high): `events` → `state` → `routes`/`demo`.
+	- `sentinel/src/events/**` must not import from `sentinel/src/state/**`, `sentinel/src/routes/**`, or `sentinel/src/demo/**`.
+	- `sentinel/src/state/**` must not import from `sentinel/src/routes/**` or `sentinel/src/demo/**`.
+- `watchtower` layering (low → high): `ui/realtime` → `ui/widgets` → `ui/pages`.
+	- `watchtower/src/ui/realtime/**` must not import from `watchtower/src/ui/widgets/**` or `watchtower/src/ui/pages/**`.
+	- `watchtower/src/ui/widgets/**` must not import from `watchtower/src/ui/pages/**`.
+
 ## Enforced constraints
 
 The repo now enforces a lightweight subset of those constraints mechanically through `npm run invariants`:

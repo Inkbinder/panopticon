@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 type QuestionResponse = {
   id: string;
   prompt: string;
+  status?: string;
+  answer?: string;
 };
 
 type SseEnvelope = {
@@ -19,6 +21,11 @@ type SseEnvelope = {
 const startupTimeoutMs = 30_000;
 const shutdownTimeoutMs = 10_000;
 const sseTimeoutMs = 10_000;
+
+function getStringField(data: Record<string, unknown>, key: string): string | undefined {
+  const value = data[key];
+  return typeof value === 'string' ? value : undefined;
+}
 
 function getRepoRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -171,6 +178,25 @@ async function fetchJson(url: string): Promise<unknown> {
   return await res.json();
 }
 
+async function createLog(baseUrl: string, message: string): Promise<void> {
+  const res = await fetch(`${baseUrl}/api/logs`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      scope: 'overseer',
+      agent: 'overseer',
+      message,
+      level: 'info',
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Log creation failed with ${res.status}`);
+  }
+
+  void res.body?.cancel?.();
+}
+
 async function waitForOverseerLog(logDir: string, message: string, onExit: () => string | null): Promise<void> {
   await waitForCondition(
     `Waiting for overseer log message ${JSON.stringify(message)}`,
@@ -207,6 +233,20 @@ async function createQuestion(baseUrl: string): Promise<QuestionResponse> {
   return (await res.json()) as QuestionResponse;
 }
 
+async function answerQuestion(baseUrl: string, id: string, answer: string): Promise<QuestionResponse> {
+  const res = await fetch(`${baseUrl}/api/questions/${id}/answer`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ answer }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Question answer failed with ${res.status}`);
+  }
+
+  return (await res.json()) as QuestionResponse;
+}
+
 function pullEventBlocks(buffer: string): { blocks: string[]; remainder: string } {
   const normalized = buffer.replace(/\r\n/g, '\n');
   const blocks = normalized.split('\n\n');
@@ -219,9 +259,11 @@ async function waitForSseEvent(
   predicate: (event: SseEnvelope) => boolean,
   label: string,
   onExit: () => string | null,
+  opts?: { timeoutMs?: number; onOpen?: () => void | Promise<void> },
 ): Promise<SseEnvelope> {
+  const timeoutMs = opts?.timeoutMs ?? sseTimeoutMs;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), sseTimeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(url, {
@@ -232,6 +274,8 @@ async function waitForSseEvent(
     if (!res.ok || !res.body) {
       throw new Error(`SSE request failed with ${res.status}`);
     }
+
+    await opts?.onOpen?.();
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -268,7 +312,7 @@ async function waitForSseEvent(
     }
   } catch (err) {
     if (controller.signal.aborted) {
-      throw new Error(`${label} timed out after ${sseTimeoutMs}ms`);
+      throw new Error(`${label} timed out after ${timeoutMs}ms`);
     }
     throw err;
   } finally {
@@ -310,6 +354,7 @@ async function main(): Promise<void> {
 
   const { child, stdout, stderr } = spawnSupervisor(repoRoot, tempDir);
   const watchtowerBaseUrl = `http://127.0.0.1:${watchtowerPort}`;
+  const sentinelBaseUrl = `http://127.0.0.1:${sentinelPort}`;
   const onExit = () => {
     if (child.exitCode === null && child.signalCode === null) return null;
     return `code=${child.exitCode ?? 'null'} signal=${child.signalCode ?? 'null'}`;
@@ -318,6 +363,32 @@ async function main(): Promise<void> {
   let shouldPreserveTempDir = true;
 
   try {
+    await waitForCondition(
+      'Waiting for Sentinel health (direct)',
+      async () => {
+        const payload = (await fetchJson(`${sentinelBaseUrl}/api/health`)) as { ok?: boolean };
+        return payload.ok === true;
+      },
+      { timeoutMs: startupTimeoutMs, onExit },
+    );
+
+    const smokeLogMessage = `Smoke test log ${Date.now()}`;
+    await waitForSseEvent(
+      `${sentinelBaseUrl}/api/events?scope=overseer`,
+      (event) =>
+        event.type === 'log' &&
+        getStringField(event.data, 'scope') === 'overseer' &&
+        getStringField(event.data, 'message') === smokeLogMessage,
+      'Waiting for log ingestion to appear on the SSE stream',
+      onExit,
+      {
+        timeoutMs: startupTimeoutMs,
+        onOpen: async () => {
+          await createLog(sentinelBaseUrl, smokeLogMessage);
+        },
+      },
+    );
+
     await waitForCondition(
       'Waiting for Watchtower to serve the UI',
       async () => {
@@ -341,8 +412,31 @@ async function main(): Promise<void> {
     const created = await createQuestion(watchtowerBaseUrl);
     await waitForSseEvent(
       `${watchtowerBaseUrl}/api/events?scope=overseer`,
-      (event) => event.type === 'question.upsert' && event.data.id === created.id && event.data.prompt === created.prompt,
+      (event) =>
+        event.type === 'question.upsert' &&
+        getStringField(event.data, 'id') === created.id &&
+        getStringField(event.data, 'prompt') === created.prompt &&
+        getStringField(event.data, 'status') === 'open',
       'Waiting for the created question to appear on the SSE stream',
+      onExit,
+    );
+
+    const expectedAnswer = 'Smoke test answer';
+    const answered = await answerQuestion(watchtowerBaseUrl, created.id, expectedAnswer);
+    if (answered.status !== 'answered' || answered.answer !== expectedAnswer) {
+      throw new Error(
+        `Unexpected question answer response. status=${JSON.stringify(answered.status)} answer=${JSON.stringify(answered.answer)}`,
+      );
+    }
+
+    await waitForSseEvent(
+      `${watchtowerBaseUrl}/api/events?scope=overseer`,
+      (event) =>
+        event.type === 'question.upsert' &&
+        getStringField(event.data, 'id') === created.id &&
+        getStringField(event.data, 'status') === 'answered' &&
+        getStringField(event.data, 'answer') === expectedAnswer,
+      'Waiting for the answered question to appear on a fresh SSE connection (reconnect snapshot)',
       onExit,
     );
 

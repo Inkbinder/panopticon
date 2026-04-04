@@ -215,7 +215,7 @@ Implemented contract:
 
 ### PR10: Package layering model and enforcement
 
-Status: proposed.
+Status: complete.
 
 Scope:
 
@@ -227,9 +227,14 @@ Acceptance criteria:
 - Internal package boundaries are predictable for agents and humans.
 - Violations produce remediation-oriented messages.
 
+Implemented contract:
+
+- `docs/architecture.md` documents a minimal internal layering model for `sentinel` and `watchtower`.
+- `npm run invariants` enforces those internal dependency directions with remediation guidance.
+
 ### PR11: Expand the runtime smoke harness scenarios
 
-Status: proposed.
+Status: complete.
 
 Scope:
 
@@ -239,6 +244,13 @@ Scope:
 Acceptance criteria:
 
 - `npm run smoke` catches representative end-to-end regressions with actionable failure output.
+
+Implemented contract:
+
+- `npm run smoke` now validates additional deterministic runtime scenarios beyond boot:
+- The log ingestion path (`/api/logs` → SSE) is exercised and observable via the SSE stream.
+- A full question lifecycle is exercised (create → answer) with state assertions.
+- A reconnect-like path is validated by asserting the answered question state is available on a fresh SSE connection via the initial snapshot.
 
 ### PR12: Recurring garbage-collection automation
 
