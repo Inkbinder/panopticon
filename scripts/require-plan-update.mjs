@@ -77,6 +77,7 @@ function main() {
     '',
     'Remediation:',
     '- Add or update an execution plan under docs/plans/active/ (or update the relevant existing plan) describing scope, non-goals, validation, and rollout steps.',
+    '- If this PR completes a planned item, update that plan section’s Status and Implemented contract in the same PR.',
   ];
 
   console.error(messageLines.join('\n'));

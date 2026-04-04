@@ -194,7 +194,7 @@ Implemented contract:
 
 ### PR9: Docs freshness and link checks
 
-Status: proposed.
+Status: complete.
 
 Scope:
 
@@ -206,6 +206,12 @@ Acceptance criteria:
 
 - `npm run check` fails if docs links are broken or required doc structure drifts.
 - Documentation claims about existing invariants/smoke paths match reality.
+
+Implemented contract:
+
+- `npm run docs:check` validates internal Markdown links (including `#anchor` references) and basic doc structure.
+- `npm run check` now runs `docs:check` as part of the default validation contract.
+- Docs guidance in `docs/quality.md` is kept in sync with the repo's actual validation commands.
 
 ### PR10: Package layering model and enforcement
 

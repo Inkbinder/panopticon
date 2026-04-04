@@ -31,6 +31,7 @@ Use this file as a map, not as the full source of truth.
 
 - If work spans multiple PRs, is a non-trivial feature, introduces new invariants/harness paths/CI gates, or changes architecture/process, first add or update an execution plan under `docs/plans/active/` and link it from `AGENTS.md`.
 - For small, single-PR fixes, a lightweight plan in the PR description is acceptable.
+- If a PR implements a planned item, update that plan section’s `Status:` and `Implemented contract:` in the same PR.
 
 ## Validation
 

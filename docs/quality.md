@@ -5,6 +5,7 @@
 Today, the repo can usually validate a change with some subset of:
 
 - `npm run check`
+- `npm run docs:check`
 - `npm run invariants`
 - `npm run smoke`
 - `npm run build`
@@ -12,7 +13,9 @@ Today, the repo can usually validate a change with some subset of:
 - package-level `typecheck`
 - package-level `lint`
 
-`npm run check` is now the default local validation contract. It runs lint, repo invariants, typecheck, tests, and the built harness smoke test across the workspaces.
+`npm run check` is now the default local validation contract. It runs lint, docs link checks, repo invariants, typecheck, tests, and the built harness smoke test across the workspaces.
+
+`npm run docs:check` validates doc structure and internal Markdown links (including `#anchor` references).
 
 `npm run invariants` is the structural contract. It currently checks package-boundary imports, Sentinel route boundary parsing, config schema validation, Watchtower SSE parsing, and Overseer structured logging usage.
 
@@ -32,9 +35,9 @@ PR6 is now complete. The repo enforces `no-explicit-any`, runs a structural inva
 
 ## Gaps to close
 
-- No shared boundary-validation convention for config, HTTP payloads, and event envelopes.
-- No structural checks for package boundaries or allowed dependency directions.
-- No doc freshness or cross-link validation.
+- Package layering model and enforcement (PR10).
+- Expand the runtime smoke harness scenarios (PR11).
+- Recurring garbage-collection automation (PR12).
 
 ## Target invariants
 
@@ -49,6 +52,7 @@ These are the first invariants to encode mechanically:
 ## Planning expectation
 
 - When work is intentionally multi-step (multiple PRs) or changes harness/CI/invariants/architecture, the change should start by adding or updating a plan under `docs/plans/active/`.
+- When a PR completes a planned item, update the relevant plan section’s `Status:` and `Implemented contract:` so repo guidance stays current.
 
 ## PR6 lint tightening target
 
