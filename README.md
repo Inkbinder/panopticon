@@ -85,6 +85,8 @@ This repo is a small monorepo:
 
 - Node.js **>= 22**
 - npm (uses npm workspaces)
+- GitHub CLI (`gh`) installed and authenticated (required for MVP auto PR creation)
+- Copilot CLI tooling installed and authenticated (required for the MVP Citizen adapter)
 
 ## Quickstart (UI + API)
 
