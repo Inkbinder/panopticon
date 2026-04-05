@@ -14,6 +14,20 @@ runtime:
   # default ports unless a package explicitly overrides them.
   portStrategy: worktree
 
+  repo:
+    # Which forge provider to use for automated PR creation.
+    # This selects a PR-provider plugin implementation (GitHub first).
+    # Accepts: github | gitlab | bitbucket
+    forge: github
+
+    # Git remote name to push PR branches to.
+    # Default (if omitted): origin
+    # remote: origin
+
+    # Base branch to target for PRs.
+    # Default (if omitted): the git default branch
+    # baseBranch: main
+
 sentinel:
   # Enable the built-in demo simulator.
   # Accepts: true/false

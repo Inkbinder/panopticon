@@ -52,7 +52,11 @@ Package-level commands vary. Before adding new rules, update the relevant packag
 
 ## Active plan
 
-- Harness engineering adoption plan: [docs/plans/active/harness-engineering-adoption.md](docs/plans/active/harness-engineering-adoption.md)
+- Panopticon MVP roadmap: [docs/plans/active/panopticon-mvp-roadmap.md](docs/plans/active/panopticon-mvp-roadmap.md)
+
+## Completed plans
+
+- Harness engineering adoption plan: [docs/plans/complete/harness-engineering-adoption.md](docs/plans/complete/harness-engineering-adoption.md)
 
 ## When changing architecture or process
 

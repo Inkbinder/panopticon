@@ -8,7 +8,8 @@ Start small, then go deeper:
 - [architecture.md](architecture.md): package responsibilities, runtime flow, and intended boundaries.
 - [quality.md](quality.md): current validation expectations and gaps to close.
 - [human-review.md](human-review.md): judgment calls that should be reviewed by a human.
-- [plans/active/harness-engineering-adoption.md](plans/active/harness-engineering-adoption.md): staged rollout plan for moving this repo toward a harness-engineering workflow.
+- [plans/active/panopticon-mvp-roadmap.md](plans/active/panopticon-mvp-roadmap.md): active roadmap for delivering Panopticon’s user-facing functionality.
+- [plans/complete/harness-engineering-adoption.md](plans/complete/harness-engineering-adoption.md): completed rollout plan for adopting harness-engineering practices in this repo.
 
 ## Principles
 

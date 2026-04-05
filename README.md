@@ -19,13 +19,44 @@ The guard runs an explicit set of steps locally before any work is allowed to be
 
 ## The Nuts and Guts
 
-So what, actually, is happening.  The core parts of panopticon are:
-- Overseer - this runs a loop, the loop triggers a prompt, the prompt tells overseer to review any updates from the active cellblocks, close completed ones, check for answers to any questions it asked, review active plans, check for any work that is not yet in progress and create a cellblock to handle it if it is deliverable. 
-- Sentinel - This recieves all the messages and acts as a central messaging hub between the human and the agent
-- Watchtower - The web ui which sits on sentinel surfacing the information and questions, statuses and progress of the Overseer and the cellblocks
-- Warden - Like Overseer, but for the cellblock level, it runs a loop which triggers a prompt, the prompt tells the Warden to review and updates from the Cells, close completed ones, check for answer to any question it asked, check for completion and notify the overseer when it believes work is complete
-- Guard - An explicit set of commands to run before allowing a PR to be raised, this ensures that your tests are always run, your doc checks are clean, and anything else you need to have done before a PR gets raised is managed.
-- Citizen - Your agent worker, it actually does the work in the plan. This triggers a call to 'ai agent' (codex, claude, ghcp etc) passing in the work that needs to be done, assigned to it by the Warden.  When this command completes the guard is automatically triggered. If the guard returns success then the Warden is notified and the PR can be raised, if not then the 'ai agent' is called again with the failure response from the guard. 
+Panopticon’s target operating model is a supervised “agent work loop” that turns repository-defined expectations into fast local feedback.
+
+### Target workflow (conceptual)
+
+This is the intended end-to-end flow:
+
+1. **Overseer** starts and runs a loop.
+2. Overseer is prompted to perform its tasklist (review updates, read plans, look for deliverable work).
+3. Overseer finds work that can be completed without conflicting with active work.
+4. Overseer creates a **cellblock** (a work package) and assigns it.
+5. A cellblock-level **Warden** breaks the work down into parallelisable **cells**.
+6. Each cell assigns a task to a **Citizen** (an agent runner) to implement the change.
+7. When a Citizen finishes, **Guard** runs the repository’s checklist for that cell.
+	- If Guard fails, the Citizen is re-prompted with the Guard output (remediation loop).
+	- If Guard passes, the Warden accepts the result and closes the cell.
+8. When all cells are closed, the Warden opens a PR for the cellblock.
+9. Humans review/approve; the Warden closes the cellblock.
+
+For MVP, “useful” includes step 8: automatic PR creation.
+
+### Concepts
+
+The core parts of Panopticon are:
+
+- **Overseer**: the top-level scheduler/manager that discovers work, monitors active cellblocks, and coordinates progress.
+- **Cellblock**: a unit of work large enough to become a PR (may contain multiple cells).
+- **Warden**: the cellblock-level manager that decomposes work, tracks cells, and decides when to open a PR.
+- **Cell**: a parallelisable task within a cellblock.
+- **Citizen**: the worker agent that performs a single cell task.
+- **Guard**: the *gate* between “Citizen says it’s done” and “Warden accepts it”. It runs a repo-defined checklist (tests, invariants, docs checks, build, or anything else you require) and produces structured, remediation-oriented output.
+
+Guard is not only “before pushing” or “before raising a PR” — it runs after each cell’s work so failures are caught early and fed back into the same cell loop.
+
+### What exists in this repo today
+
+This repository currently implements the local harness and observability pieces (Sentinel/Watchtower/Overseer/CLI) plus deterministic repo checks (`npm run check`, `npm run invariants`, `npm run smoke`).
+
+The multi-agent orchestration roles (Warden/Citizen/Guard-as-a-loop-with-reprompting/auto-PR) are the intended direction described above, but are not yet fully implemented as first-class runtime components.
 
 Each of these has access to the documentation of the project. OVERSEER and CITIZEN could be handled as SKILLS if supported by the 'ai agent' in question.
 
@@ -47,7 +78,8 @@ This repo is a small monorepo:
 - Documentation index: [docs/index.md](docs/index.md)
 - Architecture notes: [docs/architecture.md](docs/architecture.md)
 - Quality expectations: [docs/quality.md](docs/quality.md)
-- Active rollout plan: [docs/plans/active/harness-engineering-adoption.md](docs/plans/active/harness-engineering-adoption.md)
+- Active plan: [docs/plans/active/panopticon-mvp-roadmap.md](docs/plans/active/panopticon-mvp-roadmap.md)
+- Completed adoption plan: [docs/plans/complete/harness-engineering-adoption.md](docs/plans/complete/harness-engineering-adoption.md)
 
 ## Requirements
 

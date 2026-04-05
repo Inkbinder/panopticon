@@ -5,9 +5,20 @@ const nonNegativeInteger = z.number().int().min(0);
 const portNumber = z.number().int().min(1).max(65_535);
 const portStrategySchema = z.enum(['fixed', 'worktree']);
 
+const repoForgeSchema = z.enum(['github', 'gitlab', 'bitbucket']);
+
+const repoConfigSchema = z
+  .object({
+    forge: repoForgeSchema.optional(),
+    remote: nonEmptyString.optional(),
+    baseBranch: nonEmptyString.optional(),
+  })
+  .strict();
+
 const runtimeConfigSchema = z
   .object({
     portStrategy: portStrategySchema.optional(),
+    repo: repoConfigSchema.optional(),
   })
   .strict();
 
@@ -68,6 +79,9 @@ export function resolvePanopticonConfig(config: PanopticonConfig, cwd: string): 
 
   return {
     ...config,
+    runtime: {
+      ...config.runtime,
+    },
     sentinel: {
       ...config.sentinel,
       port: sentinelPort,
