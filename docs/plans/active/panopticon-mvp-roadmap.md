@@ -131,12 +131,13 @@ Acceptance criteria:
 
 ## Work items (next 1–2 PRs)
 
-1. Align documentation with reality (no hand-wavy nouns)
-   - Update README “Nuts and Guts” section to distinguish:
-     - implemented components (Sentinel/Watchtower/Overseer/CLI)
-     - aspirational components (Warden/Citizen/Guard orchestration)
-2. Lock the MVP contract (single cell loop + Guard + auto PR + minimal visibility).
-3. Add/adjust tests to lock down the MVP contract.
+1. Lock the MVP contract as an executable interface (single cell loop + Guard + auto PR + minimal visibility)
+  - Specify the minimal API/event payloads and state transitions Watchtower must render (cell status, Guard result summary, PR outcome link/status).
+  - Define the Guard run contract (which command(s), what structured output shape, what gets emitted into Sentinel).
+  - Define the auto-PR happy-path + failure diagnostics contract (GitHub via `gh`, mapped to `runtime.repo.forge`).
+2. Add/adjust tests that enforce the contract end-to-end
+  - Deterministic coverage for: lifecycle transitions → Guard result emission → UI reflects it → PR outcome recorded.
+  - Keep the test path runnable locally and in CI via `npm run check`.
 
 ## Auto PR contract (MVP)
 

@@ -25,10 +25,10 @@ Panopticon is a small Node/TypeScript monorepo with five workspaces:
 
 ## Current gaps
 
-- Boundaries are conventional, not mechanically enforced.
-- Request/config/event payload validation is not yet defined as a cross-repo invariant.
-- There is no documented layering model inside each package.
-- There is no end-to-end smoke harness that asserts the full loop works.
+- Not all boundaries are mechanically enforced yet (only a targeted subset is covered by `npm run invariants`).
+- Boundary parsing/validation rules exist for key ingress points; coverage can expand as the API surface grows.
+- Layering guidance is explicit for `sentinel` and `watchtower`; other workspaces still need a similarly crisp internal layering model.
+- The smoke harness exists (`npm run smoke`), but it intentionally covers a minimal scenario and should expand over time.
 
 ## Near-term target architecture constraints
 
