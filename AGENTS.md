@@ -27,6 +27,7 @@ Use this file as a map, not as the full source of truth.
 - Preserve package boundaries unless the change explicitly updates architecture docs.
 - Add or update tests when behavior changes.
 - Prefer deterministic local validation that can be run from the repo root.
+- Documentation edits: prefer updating existing sections; do not add new headings/sections or move content across sections unless the human explicitly asks or agrees.
 
 ## Planning rule
 

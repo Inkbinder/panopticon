@@ -26,10 +26,16 @@ MVP is a single, end-to-end slice of the target workflow:
 
 - **Single cell loop**: queued → running (Citizen) → validating (Guard) → succeeded/failed
 - **Guard-in-the-loop**: Guard is the gate between “Citizen says done” and “Warden accepts”, and Guard output is suitable for re-prompting the Citizen
+- **Warden-defined cell**: the Warden creates the cell tasks from the Overseer’s work context and constrains the cell’s allowed filesystem scope
 - **Minimal visibility**: Watchtower shows the cell status, Guard output, and PR creation outcome (link + status)
 - **Auto PR creation**: when the cell succeeds, Warden creates a PR automatically (GitHub first)
+- **MVP state**: runtime coordination/state is in-memory; persist only artifacts needed for audit/debug (structured logs, Guard results, PR link)
 
 This is intentionally minimal: one cell, one PR. Multi-cell parallelism and full cellblock semantics are follow-on.
+
+### Primary user (MVP)
+
+The primary user for MVP is the **engineer running locally** to supervise and deliver work. Agents are also a first-class “user” of the system through the fast local feedback loop (Guard output + deterministic checks), but the MVP should optimize for the human engineer experience end-to-end.
 
 ### MVP expansions (post-0.1)
 
@@ -39,6 +45,16 @@ These are not separate MVPs; they are incremental expansions of the same product
 - **Broader Guard coverage**: configurable check lists, per-repo policies, richer remediation hints
 - **Multi-cell / cellblocks**: Warden can decompose work into multiple parallel cells and open a PR when the cellblock is complete
 - **External agent adapters**: plug in real agent runners (Copilot/Claude/Codex/etc.)
+
+#### Multi-cell collision policy (design note)
+
+Multiple cells are sensible, but only when the Warden can keep their change scopes disjoint.
+
+- Default strategy (safe): Warden assigns each cell an explicit scope (paths/files/owned modules) and rejects/serializes work that overlaps.
+- Parallel execution is safe when cells operate on disjoint file sets or disjoint modules.
+- When overlap is likely, run cells sequentially or isolate each cell in its own git worktree/branch and merge results deliberately.
+
+MVP assumes a single cell to avoid collisions; multi-cell is an expansion gated on having an explicit scope/merge strategy.
 
 ## Release plan
 
@@ -90,7 +106,7 @@ Status: planned.
 Scope:
 
 - Define a small “Agent Runner Adapter” interface (spawn, stream logs, exit status, workspace root).
-- Implement **one** adapter for the primary target (TBD; e.g. GitHub Copilot Chat agent mode, Claude Code, or Codex CLI).
+- Implement **one** adapter for the primary target: **Copilot**.
 - Post “cell execution” events + logs into Sentinel.
 
 Acceptance criteria:
@@ -144,24 +160,18 @@ The interface contract should cover:
 - create branch + commit + push
 - open PR against base branch
 
-Initial implementation target: `github` provider using the GitHub CLI.
+Initial implementation target: `github` provider using the GitHub CLI (GitHub-only for MVP).
 
 - Mechanism: `gh pr create` (requires `gh` installed and authenticated).
 - The system should emit clear, remediation-oriented failures when PR creation is not possible (missing `gh`, not authenticated, no remote, incompatible remote).
+
+MVP prerequisite (opinionated): require both `gh` and the Copilot CLI tooling to be installed and authenticated.
 
 Non-goal for MVP: implementing GitLab/Bitbucket providers. Those become follow-on provider plugins.
 
 ## Open questions
 
-- What is the **primary user** for MVP: a human overseeing agent work, or an agent needing fast local feedback?
-- Should “cells” be:
-  - derived from git diffs/changed files,
-  - derived from a plan doc task list,
-  - or explicitly created by a human?
-- Where should state live for MVP: in-memory only, or persisted (file/sqlite)?
-- Which external agent runner is the “first adapter” target?
-- Which forge(s) must MVP support for PR creation: GitHub only, or GitHub + GitLab?
-- Is it acceptable for MVP to require `gh` to be installed and authenticated, or should we bundle a GitHub API implementation behind a token?
+None.
 
 ## Risks
 

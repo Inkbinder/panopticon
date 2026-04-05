@@ -23,6 +23,7 @@ This document lists the remaining decision points that should be explicitly revi
   - New invariants, new CI gates, or changes to the validation contract (must also update `docs/quality.md`).
 - External-facing docs and claims:
   - README changes, docs that state guarantees, or guidance that users will rely on.
+  - Doc structure changes (adding/removing/reorganizing major sections in entrypoint docs like README or active plans).
 - Publishing and releases:
   - Versioning, publish workflows, and any change that affects what ships to npm.
 
